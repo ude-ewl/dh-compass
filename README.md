@@ -87,7 +87,7 @@ Full provider workbooks and geospatial inputs are excluded from the source archi
 production runs use local
 inputs described in [data/README.md](data/README.md). Existing parameters and
 configuration remain unchanged. A separate CC BY 4.0 resource bundle is available;
-the NRW GDB must be supplied locally. The slim attributed HEF03/HMF03 coefficient
+the NRW GDB must be supplied locally, you can download it from here (https://www.opengeodata.nrw.de/produkte/umwelt_klima/energie/kwp/KWP-NRW-Waermebedarf_EPSG25832_Geodatabase.zip). The slim attributed HEF03/HMF03 coefficient
 JSON is bundled by default; additional profiles require a local input override.
 See [SLP setup and provenance](docs/slp-inputs.md).
 See [DATA_LICENSES.md](DATA_LICENSES.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
