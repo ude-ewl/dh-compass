@@ -12,8 +12,7 @@ uv run dh-compass charts outputs/bad_oeynhausen/<timestamp>/full_results.json
 ```
 
 Historical temperatures are loaded automatically for the selected area using
-Open-Meteo ERA5-Land, then cached by location and year. No weather account,
-CDS credentials or GRIB download is needed for non-commercial use. The default
+Open-Meteo ERA5-Land, then cached by location and year. The default
 weather year is 2022; change `demand.slp_year` to another completed year.
 Demand profiles and heat-pump calculations use the same local weather.
 
