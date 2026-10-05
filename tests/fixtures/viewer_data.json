@@ -1,0 +1,113 @@
+{
+  "config": {
+    "case": "fixture",
+    "lhd_threshold": 0.1
+  },
+  "summary": {
+    "total_subgraphs": 3,
+    "connected_subgraphs": 2,
+    "disconnected_subgraphs": 1,
+    "total_heat_demand_mwh": 30.0,
+    "connected_heat_demand_mwh": 20.0,
+    "disconnected_heat_demand_mwh": 10.0,
+    "connected_share_pct": 66.67
+  },
+  "iterations": [
+    {
+      "step": 0,
+      "subgraph_id": 1,
+      "decision": "connected",
+      "central_cost_total": 1000.0,
+      "marginal_central_cost": 1000.0,
+      "decentral_cost": 1200.0,
+      "cumulative_connected_ids": [1],
+      "connecting_path_geojson": null
+    },
+    {
+      "step": 1,
+      "subgraph_id": 2,
+      "decision": "rejected",
+      "central_cost_total": 2400.0,
+      "marginal_central_cost": 1400.0,
+      "decentral_cost": 1300.0,
+      "cumulative_connected_ids": [1],
+      "connecting_path_geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [[7.0, 51.0], [7.01, 51.01]]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "subgraph_id": 3,
+      "decision": "connected",
+      "central_cost_total": 2500.0,
+      "marginal_central_cost": 1500.0,
+      "decentral_cost": 1700.0,
+      "cumulative_connected_ids": [1, 3],
+      "connecting_path_geojson": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [[7.01, 51.01], [7.02, 51.02]]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "subgraphs": {
+    "1": {
+      "is_connected": true,
+      "annual_heat_demand_mwh": 10.0,
+      "peak_load_kw": 4.0,
+      "buildings": 2,
+      "total_network_length_m": 100.0,
+      "avg_lhd": 0.2,
+      "central_cost": 1000.0,
+      "decentral_cost": 1200.0,
+      "connection_length_m": 0.0,
+      "edges_geojson": {"type": "FeatureCollection", "features": []},
+      "clusters": []
+    },
+    "2": {
+      "is_connected": false,
+      "annual_heat_demand_mwh": 10.0,
+      "peak_load_kw": 3.0,
+      "buildings": 2,
+      "total_network_length_m": 80.0,
+      "avg_lhd": 0.15,
+      "central_cost": 2400.0,
+      "decentral_cost": 1300.0,
+      "connection_length_m": 100.0,
+      "edges_geojson": {"type": "FeatureCollection", "features": []},
+      "clusters": []
+    },
+    "3": {
+      "is_connected": true,
+      "annual_heat_demand_mwh": 10.0,
+      "peak_load_kw": 3.5,
+      "buildings": 2,
+      "total_network_length_m": 90.0,
+      "avg_lhd": 0.18,
+      "central_cost": 2500.0,
+      "decentral_cost": 1700.0,
+      "connection_length_m": 110.0,
+      "edges_geojson": {"type": "FeatureCollection", "features": []},
+      "clusters": []
+    }
+  },
+  "lhd_edges_geojson": {"type": "FeatureCollection", "features": []}
+}

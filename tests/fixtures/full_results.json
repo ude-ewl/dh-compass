@@ -1,0 +1,113 @@
+{
+  "combined_graph": {
+    "annual_heat_demand_mwh": 12.5,
+    "connected_subgraph_ids": [
+      1
+    ],
+    "cost": {
+      "grid_annualized_eur": 72.22,
+      "grid_breakdown": {
+        "building_connections_eur": 36.11,
+        "connection_pipelines_eur": 14.44,
+        "distribution_pipes_eur": 72.22,
+        "pumps_eur": 1.44,
+        "raw_total_eur": 1000.0,
+        "total_annualized_eur": 72.22,
+        "transfer_stations_eur": 14.44
+      },
+      "grid_share_pct": 3.61,
+      "supply_annualized_eur": 1927.78,
+      "supply_breakdown": {
+        "breakdown_total_eur": 0.0,
+        "fixed_om": {
+          "by_technology_eur": {},
+          "total_eur": 0
+        },
+        "investment": {
+          "by_technology_eur": {},
+          "total_eur": 0
+        },
+        "note": "Breakdown is reconstructed from model variables; for exact totals use the model objective values.",
+        "operational": {
+          "biomass_chp_revenue_annual_eur": 0.0,
+          "chp_revenue_annual_eur": 0.0,
+          "electricity_annual_eur": 0.0,
+          "fuel_biomass_annual_eur": 0.0,
+          "fuel_boiler_annual_eur": 0.0,
+          "fuel_chp_annual_eur": 0.0,
+          "net_operational_annual_eur": 0.0,
+          "pv_revenue_annual_eur": 0.0
+        }
+      },
+      "supply_share_pct": 96.39,
+      "total_annualized_eur": 2000.0
+    },
+    "edges": [
+      {
+        "building_count": 2,
+        "heat_demand_mwh": 12.5,
+        "key": 0,
+        "length_m": 100.0,
+        "linear_heat_density_mwh_per_m_a": 0.125,
+        "peak_load_kw": 4.0,
+        "u": 1,
+        "v": 2
+      }
+    ],
+    "peak_load_kw": 0.0,
+    "storage": {},
+    "supply": {},
+    "total_buildings": 2,
+    "total_heat_production_mwh": 0.0,
+    "total_network_length_m": 100.0,
+    "connection_length_m": 20.0
+  },
+  "subgraphs": [
+    {
+      "annual_heat_demand_mwh": 12.5,
+      "average_linear_heat_density_mwh_per_m_a": 0.125,
+      "building_annual_demands_mwh": [
+        5.0,
+        7.5
+      ],
+      "building_peak_loads_kw": [
+        1.6667,
+        2.5
+      ],
+      "buildings": 2,
+      "central_cumulative_supply": {
+        "cost_annualized_eur": 2000.0,
+        "cumulative_demand_mwh": 0.0,
+        "storage": {},
+        "supply": {},
+        "total_heat_production_mwh": 0.0
+      },
+      "edges": [
+        {
+          "building_count": 2,
+          "heat_demand_mwh": 12.5,
+          "key": 0,
+          "length_m": 100.0,
+          "linear_heat_density_mwh_per_m_a": 0.125,
+          "peak_load_kw": 4.0,
+          "u": 1,
+          "v": 2
+        }
+      ],
+      "is_connected": true,
+      "peak_load_mw": 0.004,
+      "share_of_combined_demand_pct": 100.0,
+      "subgraph_id": 1,
+      "total_network_length_m": 100.0
+    }
+  ],
+  "summary": {
+    "connected_heat_demand_mwh": 12.5,
+    "connected_share_pct": 100.0,
+    "connected_subgraphs": 1,
+    "disconnected_heat_demand_mwh": 0.0,
+    "disconnected_subgraphs": 0,
+    "total_heat_demand_mwh": 12.5,
+    "total_subgraphs": 1
+  }
+}

@@ -1,0 +1,76 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.env
+.venv/
+env/
+venv/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+.idea/
+.vscode/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Generated runs and logs
+outputs/
+logs/
+*.log
+*.zip
+*.html
+!templates/
+!templates/viewer.html
+!frontend/index.html
+.ipynb_checkpoints/
+notebooks/results/
+notebooks/cache/
+results/
+# ``frontend/src/features/results`` is application source, not a generated
+# result directory.
+!frontend/src/features/results/
+!frontend/src/features/results/**
+
+# Local/external data
+cache/
+data/external/
+*.gdb
+*.tif
+*.grib
+*.csv
+*.xlsx
+*.xls
+*.xlsm
+
+# Keep small/versioned reference data explicitly tracked.
+!data/
+!data/reference/
+!data/reference/**
+!data/examples/
+!data/examples/**
+!data/README.md
+# Credentials and private original datasets remain ignored.
+data/reference/.cdsapirc.txt
+# Generated comparison artefacts
+cop_comparison.html
+nul
+
+# Reference originals are local until redistribution is explicitly approved.
+data/reference/*
+!data/reference/.gitkeep
+!data/reference/sh_to_wh_ratio.csv
+!data/reference/slp_parameters.json
+**/.cdsapirc*
+**/.env
+.env.*
+*.db
+*.sqlite*
+dist/
+build/
+.cache/
+.venv-release/

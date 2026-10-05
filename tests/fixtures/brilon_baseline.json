@@ -1,0 +1,63 @@
+{
+  "absolute_tolerance": 0.01,
+  "combined_graph": {
+    "annual_heat_demand_mwh": 33768.4047,
+    "connected_subgraph_ids": [4, 3, 14, 2, 7],
+    "cost": {
+      "grid_annualized_eur": 2119770.91,
+      "grid_breakdown": {
+        "building_connections_eur": 1250456.21,
+        "connection_pipelines_eur": 28720.49,
+        "distribution_pipes_eur": 519131.61,
+        "pumps_eur": 73682.58,
+        "raw_total_eur": 26577809.91,
+        "total_annualized_eur": 2119770.91,
+        "transfer_stations_eur": 247780.03
+      },
+      "grid_share_pct": 47.28,
+      "central_model_objective_eur": 2363774.57,
+      "supply_annualized_eur": 2363774.57,
+      "supply_share_pct": 52.72,
+      "total_annualized_eur": 4483545.48
+    },
+    "storage": {
+      "heat_storage": {"capacity_kwh": 34247.0644, "power_kw": 5707.8441}
+    },
+    "supply": {
+      "biomass_chp": {"annual_heat_energy_mwh": 160.3027, "capacity_el_kw": 15.3862, "capacity_th_kw": 76.931, "energy_share_pct": 0.47},
+      "boiler": {"annual_energy_mwh": 2430.8361, "capacity_kw": 2722.7841, "energy_share_pct": 7.2},
+      "chp": {"annual_heat_energy_mwh": 9569.6817, "capacity_el_kw": 1382.4077, "capacity_th_kw": 2128.9079, "energy_share_pct": 28.34},
+      "geothermal": {"annual_energy_mwh": 578.3, "capacity_kw": 66.016, "energy_share_pct": 1.71},
+      "heat_pump": {"annual_energy_mwh": 21029.2842, "capacity_kw": 3871.476, "energy_share_pct": 62.28}
+    },
+    "total_heat_production_mwh": 33768.4047,
+    "total_network_length_m": 4913.67
+  },
+  "decentralized_total_annualized_eur": 7470251.63,
+  "scenario": "brilon",
+  "subgraphs": [
+    {"central_cost_annualized_eur": 2755401.12, "decentral_cost_annualized_eur": 2806673.78, "is_connected": true, "subgraph_id": 4},
+    {"central_cost_annualized_eur": 3589257.5, "decentral_cost_annualized_eur": 907298.88, "is_connected": true, "subgraph_id": 3},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 1626666.27, "is_connected": false, "subgraph_id": 1},
+    {"central_cost_annualized_eur": 3686402.75, "decentral_cost_annualized_eur": 107597.53, "is_connected": true, "subgraph_id": 14},
+    {"central_cost_annualized_eur": 4263919.67, "decentral_cost_annualized_eur": 594532.9, "is_connected": true, "subgraph_id": 2},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 98671.96, "is_connected": false, "subgraph_id": 6},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 29328.33, "is_connected": false, "subgraph_id": 11},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 385991.93, "is_connected": false, "subgraph_id": 9},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 171834.81, "is_connected": false, "subgraph_id": 5},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 101712.23, "is_connected": false, "subgraph_id": 13},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 142315.1, "is_connected": false, "subgraph_id": 12},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 48793.77, "is_connected": false, "subgraph_id": 10},
+    {"central_cost_annualized_eur": null, "decentral_cost_annualized_eur": 217137.99, "is_connected": false, "subgraph_id": 8},
+    {"central_cost_annualized_eur": 4483545.48, "decentral_cost_annualized_eur": 231696.15, "is_connected": true, "subgraph_id": 7}
+  ],
+  "summary": {
+    "connected_heat_demand_mwh": 33768.4047,
+    "connected_share_pct": 62.99,
+    "connected_subgraphs": 5,
+    "disconnected_heat_demand_mwh": 19838.5399,
+    "disconnected_subgraphs": 9,
+    "total_heat_demand_mwh": 53606.9446,
+    "total_subgraphs": 14
+  }
+}

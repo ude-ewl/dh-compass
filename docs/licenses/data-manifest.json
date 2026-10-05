@@ -1,0 +1,65 @@
+{
+  "review_date": "2026-10-05",
+  "datasets": [
+    {
+      "local_path": "data/external/heat_supply_potentials/biomass_nuts2(1).gpkg",
+      "sha256": "b4455ebdb476f711d9c8ef9642913704a439541e5bc29fbf59ea9b6ffb334a7c",
+      "size_bytes": 3702784,
+      "layer": "biomass_nuts2",
+      "crs": "EPSG:3035",
+      "features": 236,
+      "license": "CC-BY-4.0",
+      "source_url": "https://fordatis.fraunhofer.de/handle/fordatis/341.2"
+    },
+    {
+      "local_path": "data/external/heat_supply_potentials/hydrothermal_85_nrw.gpkg",
+      "sha256": "1396b258d35ac5d6323782f709d047e70c58227e6d98da7c3c62161fd2730bfc",
+      "size_bytes": 1306624,
+      "layer": "hydrothermal_85_nrw",
+      "crs": "EPSG:3035",
+      "features": 8238,
+      "license": "CC-BY-4.0",
+      "source_url": "https://fordatis.fraunhofer.de/handle/fordatis/341.2"
+    },
+    {
+      "local_path": "data/external/heat_supply_potentials/industrial_eh.gpkg",
+      "sha256": "430df863f55d3d06786a8140f464aad2824ceb278460a82a7510adc4c12123ca",
+      "size_bytes": 327680,
+      "layer": "industrial_eh",
+      "crs": "EPSG:3035",
+      "features": 1639,
+      "license": "CC-BY-4.0",
+      "source_url": "https://fordatis.fraunhofer.de/handle/fordatis/341.2"
+    },
+    {
+      "local_path": "data/external/heat_supply_potentials/rivers_lakes.gpkg",
+      "sha256": "0f5d489f876a6b90d465c37b3875ad15b2ee29ff35444c2648ddf2eea2f93ea4",
+      "size_bytes": 667648,
+      "layer": "rivers_lakes",
+      "crs": "EPSG:3035",
+      "features": 652,
+      "license": "CC-BY-4.0",
+      "source_url": "https://fordatis.fraunhofer.de/handle/fordatis/341.2"
+    },
+    {
+      "local_path": "data/external/heat_supply_potentials/wte.gpkg",
+      "sha256": "85b595df6f8cdd2709434345ae96a4cf1acb4e6d233b99a47640b173b2d66a8a",
+      "size_bytes": 172032,
+      "layer": "wte",
+      "crs": "EPSG:3035",
+      "features": 408,
+      "license": "CC-BY-4.0",
+      "source_url": "https://fordatis.fraunhofer.de/handle/fordatis/341.2"
+    },
+    {
+      "local_path": "data/external/heat_supply_potentials/wwtp.gpkg",
+      "sha256": "bd10ed4c48853ef275a6df136e7aed95fafac80453036b23bdf561599b9cb3a6",
+      "size_bytes": 2965504,
+      "layer": "wwtp",
+      "crs": "EPSG:3035",
+      "features": 23730,
+      "license": "CC-BY-4.0",
+      "source_url": "https://fordatis.fraunhofer.de/handle/fordatis/341.2"
+    }
+  ]
+}

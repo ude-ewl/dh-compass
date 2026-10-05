@@ -1,0 +1,299 @@
+:root {
+  --hgp-color-navy: #8892b0;
+  --hgp-color-heat: #e94560;
+  --hgp-color-network: #00c853;
+  --hgp-color-rejected: #ff1744;
+  --hgp-color-warning: #ffd600;
+  --hgp-color-surface: #1a1a2e;
+  --hgp-space-1: 0.25rem;
+  --hgp-space-2: 0.5rem;
+  --hgp-space-3: 0.75rem;
+  --hgp-space-4: 1rem;
+  --hgp-space-6: 1.5rem;
+  --hgp-space-8: 2rem;
+  color: #e0e0e0;
+  background: var(--hgp-color-surface);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.skip-to-content {
+  background: #fff;
+  border: 2px solid var(--hgp-color-navy);
+  border-radius: 0 0 4px 4px;
+  color: var(--hgp-color-navy);
+  left: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  position: fixed;
+  top: 0;
+  transform: translateY(-150%);
+  transition: transform 120ms ease-in-out;
+  z-index: 2000;
+}
+
+.skip-to-content:focus {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+a {
+  color: var(--hgp-color-navy);
+}
+
+.grid-viewer {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.viewer-timeline,
+.viewer-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.viewer-timeline button {
+  padding: 4px 10px;
+  border: 1px solid #0f3460;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.viewer-timeline button:hover {
+  background: #0f3460;
+}
+.viewer-timeline button.active {
+  background: #e94560;
+  border-color: #e94560;
+}
+.viewer-timeline button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.viewer-timeline input {
+  flex: 1;
+  min-width: 100px;
+  accent-color: #e94560;
+}
+.viewer-step-label {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.viewer-layer-toggles {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.viewer-stats {
+  gap: 24px;
+  padding-block: 6px;
+  font-size: 13px;
+  color: #8892b0;
+}
+.viewer-stats strong {
+  color: #e0e0e0;
+  margin-left: 6px;
+}
+.viewer-live-label {
+  margin-left: auto;
+  color: #ffd600;
+}
+.viewer-body,
+.viewer-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  flex: 1;
+  min-height: 0;
+}
+.viewer-map {
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+}
+.viewer-sidebar {
+  background: #16213e;
+  border-left: 1px solid #0f3460;
+  overflow: auto;
+  padding: 16px;
+  min-height: 0;
+  min-width: 0;
+}
+.viewer-sidebar h1,
+.viewer-sidebar > h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e94560;
+  border-bottom: 1px solid #0f3460;
+  padding-bottom: 8px;
+  margin: 0 0 12px;
+}
+.viewer-muted {
+  font-size: 13px;
+  color: #8892b0;
+  line-height: 1.5;
+}
+.viewer-sidebar > .MuiPaper-root {
+  margin-top: 12px;
+}
+.viewer-sidebar .MuiTypography-h6 {
+  font-size: 15px;
+}
+.viewer-sidebar .MuiTypography-caption {
+  font-size: 12px;
+}
+.viewer-sidebar .MuiPaper-root {
+  box-shadow: none;
+}
+.viewer-evaluating {
+  padding: 12px 0;
+  color: #ffd600;
+}
+.viewer-map-note {
+  position: absolute;
+  left: 16px;
+  bottom: 60px;
+  max-width: calc(100% - 32px);
+  padding: 10px 14px;
+  background: #16213eee;
+  color: #8892b0;
+  font-size: 13px;
+  pointer-events: none;
+}
+.viewer-area > [aria-label="Study area map"] {
+  grid-column: 1;
+}
+.area-sidebar {
+  grid-column: 2;
+}
+.area-sidebar .MuiPaper-root {
+  border: 0;
+}
+.area-sidebar .MuiPaper-root > .MuiStack-root > .MuiStack-root {
+  flex-direction: column;
+  align-items: stretch;
+}
+.area-sidebar #exact-extent-content .MuiStack-root {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.viewer-results-summary {
+  margin-top: 16px;
+}
+.viewer-results-summary > summary {
+  cursor: pointer;
+  color: #e94560;
+  padding-block: 8px;
+}
+.viewer-sidebar .printable-results {
+  padding: 0;
+}
+.viewer-result-map svg .result-map-feature {
+  transition: stroke 300ms ease;
+}
+
+@media (max-width: 900px) {
+  .viewer-body,
+  .viewer-area {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+  .viewer-timeline {
+    padding-inline: 8px;
+  }
+  .viewer-stats {
+    gap: 12px;
+  }
+}
+@media (max-width: 680px) {
+  .viewport-shell > main {
+    overflow: auto;
+  }
+  .grid-viewer {
+    height: auto;
+    min-height: 100%;
+  }
+  .viewer-body,
+  .viewer-area {
+    display: flex;
+    flex-direction: column;
+  }
+  .viewer-area {
+    height: auto !important;
+    min-height: 100% !important;
+  }
+  .viewer-map,
+  .viewer-area > [aria-label="Study area map"] {
+    flex: none;
+    height: 50vh !important;
+    min-height: 300px;
+  }
+  .viewer-sidebar {
+    overflow: visible;
+    border-left: 0;
+    border-top: 1px solid #0f3460;
+  }
+  .viewer-timeline input {
+    order: 2;
+    flex-basis: 100%;
+  }
+  .viewer-layer-toggles {
+    margin-left: 0;
+  }
+  .viewer-stats {
+    font-size: 12px;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .app-shell > header,
+  .app-shell > div > nav,
+  .MuiButton-root,
+  .MuiTabs-root,
+  [data-testid="maplibre-map"] {
+    display: none !important;
+  }
+
+  .printable-results {
+    margin: 0;
+  }
+
+  .MuiPaper-root {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

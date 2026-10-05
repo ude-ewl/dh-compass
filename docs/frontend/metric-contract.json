@@ -1,0 +1,476 @@
+{
+  "version": "1",
+  "metrics": [
+    {
+      "id": "summary.total_heat_demand_mwh",
+      "field": "summary.total_heat_demand_mwh",
+      "unit": "MWh/a",
+      "scope": "all screened candidate areas in the study bbox",
+      "time_basis": "annual model demand",
+      "basis": "connected plus disconnected candidate demand",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:summary.total_heat_demand_mwh"
+      ]
+    },
+    {
+      "id": "summary.connected_heat_demand_mwh",
+      "field": "summary.connected_heat_demand_mwh",
+      "unit": "MWh/a",
+      "scope": "buildings in the final connected central network",
+      "time_basis": "annual model demand",
+      "basis": "sum of selected candidate demand",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:summary.connected_heat_demand_mwh"
+      ]
+    },
+    {
+      "id": "summary.disconnected_heat_demand_mwh",
+      "field": "summary.disconnected_heat_demand_mwh",
+      "unit": "MWh/a",
+      "scope": "screened candidates not selected for the central network",
+      "time_basis": "annual model demand",
+      "basis": "sum of rejected candidate demand",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:summary.disconnected_heat_demand_mwh"
+      ]
+    },
+    {
+      "id": "summary.connected_share_pct",
+      "field": "summary.connected_share_pct",
+      "unit": "%",
+      "scope": "all screened candidate demand",
+      "time_basis": "annual model demand",
+      "basis": "connected heat demand / total heat demand",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:summary.connected_share_pct"
+      ]
+    },
+    {
+      "id": "summary.connected_buildings",
+      "field": "summary.connected_buildings",
+      "unit": "buildings",
+      "scope": "buildings served by the final central network",
+      "time_basis": "snapshot at final solution",
+      "basis": "count of buildings in connected candidates",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.total_buildings"
+      ]
+    },
+    {
+      "id": "summary.total_annualized_eur",
+      "field": "summary.total_annualized_eur",
+      "unit": "€/a",
+      "scope": "final connected central system",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "annualized grid plus supply cost",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.cost.total_annualized_eur"
+      ]
+    },
+    {
+      "id": "summary.total_network_length_m",
+      "field": "summary.total_network_length_m",
+      "unit": "m",
+      "scope": "final central network",
+      "time_basis": "snapshot at final solution",
+      "basis": "sum of selected network edge lengths",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.total_network_length_m"
+      ]
+    },
+    {
+      "id": "summary.peak_load_kw",
+      "field": "summary.peak_load_kw",
+      "unit": "kW",
+      "scope": "final connected central network",
+      "time_basis": "maximum modeled demand timestep",
+      "basis": "maximum demand_heat in final solution",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.peak_load_kw"
+      ]
+    },
+    {
+      "id": "summary.supply_annualized_eur",
+      "field": "summary.supply_annualized_eur",
+      "unit": "€/a",
+      "scope": "final connected central supply portfolio",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "annualized total cost less annualized grid cost",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.cost.supply_annualized_eur"
+      ]
+    },
+    {
+      "id": "summary.grid_annualized_eur",
+      "field": "summary.grid_annualized_eur",
+      "unit": "€/a",
+      "scope": "final connected central network infrastructure",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "annualized network and connection costs",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.cost.grid_annualized_eur"
+      ]
+    },
+    {
+      "id": "summary.supply_share_pct",
+      "field": "summary.supply_share_pct",
+      "unit": "%",
+      "scope": "final connected central system annualized cost",
+      "time_basis": "annualized cost basis",
+      "basis": "supply annualized cost / total annualized cost",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.cost.supply_share_pct"
+      ]
+    },
+    {
+      "id": "summary.grid_share_pct",
+      "field": "summary.grid_share_pct",
+      "unit": "%",
+      "scope": "final connected central system annualized cost",
+      "time_basis": "annualized cost basis",
+      "basis": "grid annualized cost / total annualized cost",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.cost.grid_share_pct"
+      ]
+    },
+    {
+      "id": "summary.technology_annual_energy_mwh",
+      "field": "summary.technology_annual_energy_mwh",
+      "unit": "MWh/a",
+      "scope": "one final connected central supply technology",
+      "time_basis": "annual modeled production",
+      "basis": "technology-local production, not total demand",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.supply.*"
+      ]
+    },
+    {
+      "id": "summary.technology_capacity_kw",
+      "field": "summary.technology_capacity_kw",
+      "unit": "kW",
+      "scope": "one final connected central supply technology",
+      "time_basis": "installed capacity",
+      "basis": "thermal or electrical technology capacity",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.supply.*"
+      ]
+    },
+    {
+      "id": "summary.technology_energy_share_pct",
+      "field": "summary.technology_energy_share_pct",
+      "unit": "%",
+      "scope": "final connected central supply portfolio",
+      "time_basis": "annual modeled production",
+      "basis": "technology production share",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.supply.*.energy_share_pct"
+      ]
+    },
+    {
+      "id": "summary.grid_raw_total_eur",
+      "field": "summary.grid_raw_total_eur",
+      "unit": "€",
+      "scope": "final connected central network infrastructure",
+      "time_basis": "capital value at model price basis",
+      "basis": "raw grid investment before annualization and residual-value treatment",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.cost.grid_breakdown.raw_total_eur"
+      ]
+    },
+    {
+      "id": "summary.total_heat_production_mwh",
+      "field": "summary.total_heat_production_mwh",
+      "unit": "MWh/a",
+      "scope": "final connected central supply portfolio",
+      "time_basis": "annual modeled production",
+      "basis": "sum of reported supply technology production",
+      "calculation_stage": "final reporting",
+      "provenance": [
+        "full_results.json:combined_graph.total_heat_production_mwh"
+      ]
+    },
+    {
+      "id": "summary.cost_per_connected_mwh",
+      "field": "summary.cost_per_connected_mwh",
+      "unit": "€/MWh",
+      "scope": "final connected central system",
+      "time_basis": "annualized cost divided by annual demand",
+      "basis": "total annualized cost / connected annual demand",
+      "calculation_stage": "frontend-derived from final reporting values",
+      "provenance": [
+        "summary.total_annualized_eur",
+        "summary.connected_heat_demand_mwh"
+      ]
+    },
+    {
+      "id": "candidate.annual_heat_demand_mwh",
+      "field": "candidate.annual_heat_demand_mwh",
+      "unit": "MWh/a",
+      "scope": "one candidate area",
+      "time_basis": "annual model demand",
+      "basis": "candidate-local demand",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.annual_heat_demand_mwh"
+      ]
+    },
+    {
+      "id": "candidate.buildings",
+      "field": "candidate.buildings",
+      "unit": "buildings",
+      "scope": "one candidate area",
+      "time_basis": "snapshot at candidate evaluation",
+      "basis": "candidate-local building count",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.buildings"
+      ]
+    },
+    {
+      "id": "candidate.peak_load_kw",
+      "field": "candidate.peak_load_kw",
+      "unit": "kW",
+      "scope": "one candidate area",
+      "time_basis": "maximum modeled demand timestep",
+      "basis": "peak_load_mw is converted to kW when that is the available field",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.peak_load_kw",
+        "full_results.json:subgraphs.*.peak_load_mw"
+      ]
+    },
+    {
+      "id": "candidate.total_network_length_m",
+      "field": "candidate.total_network_length_m",
+      "unit": "m",
+      "scope": "trial network inside one candidate area",
+      "time_basis": "snapshot at candidate evaluation",
+      "basis": "candidate-local network length, not final total",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.total_network_length_m"
+      ]
+    },
+    {
+      "id": "candidate.connection_length_m",
+      "field": "candidate.connection_length_m",
+      "unit": "m",
+      "scope": "connection path for one candidate",
+      "time_basis": "snapshot at candidate evaluation",
+      "basis": "candidate-local connecting path",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.connection_length_m"
+      ]
+    },
+    {
+      "id": "candidate.average_lhd",
+      "field": "candidate.average_lhd",
+      "unit": "MWh/(m·a)",
+      "scope": "one candidate area",
+      "time_basis": "annual model demand",
+      "basis": "candidate demand divided by candidate network length",
+      "calculation_stage": "candidate preprocessing/evaluation",
+      "provenance": [
+        "full_results.json:subgraphs.*.average_linear_heat_density_mwh_per_m_a"
+      ]
+    },
+    {
+      "id": "candidate.central_cost",
+      "field": "candidate.central_cost",
+      "unit": "€/a",
+      "scope": "trial central connection of one candidate",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "candidate-local annualized central alternative",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.central_cost"
+      ]
+    },
+    {
+      "id": "candidate.decentral_cost",
+      "field": "candidate.decentral_cost",
+      "unit": "€/a",
+      "scope": "decentralized alternative for one candidate",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "candidate-local annualized decentralized alternative",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.decentral_cost"
+      ]
+    },
+    {
+      "id": "candidate.central_grid_cost_raw",
+      "field": "candidate.central_grid_cost_raw",
+      "unit": "€",
+      "scope": "trial central connection of one candidate",
+      "time_basis": "capital value at model price basis",
+      "basis": "raw capital value, not annualized",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.central_grid_cost_raw"
+      ]
+    },
+    {
+      "id": "candidate.decision_margin",
+      "field": "candidate.decision_margin",
+      "unit": "€/a",
+      "scope": "one candidate alternative comparison",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "decentralized cost minus central cost",
+      "calculation_stage": "frontend-derived from candidate evaluation",
+      "provenance": [
+        "candidate.decentral_cost",
+        "candidate.central_cost"
+      ]
+    },
+    {
+      "id": "candidate.decision_step",
+      "field": "candidate.decision_step",
+      "unit": "step",
+      "scope": "optimization candidate ordering",
+      "time_basis": "run sequence",
+      "basis": "one-based display position",
+      "calculation_stage": "optimization orchestration",
+      "provenance": [
+        "viewer_data.json:iterations.*.step"
+      ]
+    },
+    {
+      "id": "candidate.technology_annual_energy_mwh",
+      "field": "candidate.technology_annual_energy_mwh",
+      "unit": "MWh/a",
+      "scope": "one candidate supply portfolio",
+      "time_basis": "annual modeled production",
+      "basis": "technology-local production, not total demand",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.supply.*"
+      ]
+    },
+    {
+      "id": "candidate.storage_capacity_kwh",
+      "field": "candidate.storage_capacity_kwh",
+      "unit": "kWh",
+      "scope": "one candidate storage asset",
+      "time_basis": "installed capacity",
+      "basis": "capacity, not annual energy",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.storage.*.capacity_kwh"
+      ]
+    },
+    {
+      "id": "candidate.storage_power_kw",
+      "field": "candidate.storage_power_kw",
+      "unit": "kW",
+      "scope": "one candidate storage asset",
+      "time_basis": "installed peak charge/discharge power",
+      "basis": "power, not storage capacity",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.storage.*.power_kw"
+      ]
+    },
+    {
+      "id": "candidate.total_heat_production_mwh",
+      "field": "candidate.total_heat_production_mwh",
+      "unit": "MWh/a",
+      "scope": "one candidate supply portfolio",
+      "time_basis": "annual modeled production",
+      "basis": "candidate-local production total",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.total_heat_production_mwh"
+      ]
+    },
+    {
+      "id": "candidate.cost_breakdown_investment",
+      "field": "candidate.cost_breakdown_investment",
+      "unit": "€/a",
+      "scope": "one candidate supply portfolio",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "reconstructed annualized investment component",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.cost_breakdown.investment.total_eur"
+      ]
+    },
+    {
+      "id": "candidate.cost_breakdown_fixed_om",
+      "field": "candidate.cost_breakdown_fixed_om",
+      "unit": "€/a",
+      "scope": "one candidate supply portfolio",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "reconstructed annualized fixed O&M component",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.cost_breakdown.fixed_om.total_eur"
+      ]
+    },
+    {
+      "id": "candidate.cost_breakdown_operational",
+      "field": "candidate.cost_breakdown_operational",
+      "unit": "€/a",
+      "scope": "one candidate supply portfolio",
+      "time_basis": "annual operating basis",
+      "basis": "net operational cost after modeled revenues",
+      "calculation_stage": "candidate evaluation",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.cost_breakdown.operational.net_operational_annual_eur"
+      ]
+    },
+    {
+      "id": "cluster.n_buildings",
+      "field": "cluster.n_buildings",
+      "unit": "buildings",
+      "scope": "one decentralized demand cluster inside one candidate",
+      "time_basis": "snapshot at candidate evaluation",
+      "basis": "cluster-local building count",
+      "calculation_stage": "decentralized clustering",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.clusters.*.n_buildings"
+      ]
+    },
+    {
+      "id": "cluster.total_demand_mwh",
+      "field": "cluster.total_demand_mwh",
+      "unit": "MWh/a",
+      "scope": "one decentralized demand cluster inside one candidate",
+      "time_basis": "annual model demand",
+      "basis": "cluster-local demand",
+      "calculation_stage": "decentralized clustering",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.clusters.*.total_demand_mwh"
+      ]
+    },
+    {
+      "id": "cluster.scaled_annualized_cost_eur",
+      "field": "cluster.scaled_annualized_cost_eur",
+      "unit": "€/a",
+      "scope": "one scaled decentralized demand cluster",
+      "time_basis": "annualized over configured investment duration",
+      "basis": "cluster-local scaled cost, not final-system total",
+      "calculation_stage": "decentralized clustering",
+      "provenance": [
+        "viewer_data.json:subgraphs.*.clusters.*.scaled_annualized_cost_eur"
+      ]
+    }
+  ]
+}

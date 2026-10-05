@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Deprecated compatibility fallback: use the browser results portal for new workflows. -->
+<meta name="dh-compass-viewer-status" content="deprecated-compatibility-fallback">
+<title>DH-COMPASS Viewer (deprecated fallback)</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; height: 100vh; background: #1a1a2e; color: #e0e0e0; }
+
+  #top-bar { display: flex; align-items: center; gap: 16px; padding: 10px 20px; background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; }
+  #top-bar h1 { font-size: 16px; font-weight: 600; white-space: nowrap; }
+  #slider-container { flex: 1; display: flex; align-items: center; gap: 10px; }
+  #step-slider { flex: 1; cursor: pointer; accent-color: #e94560; }
+  #step-label { font-size: 13px; white-space: nowrap; min-width: 80px; text-align: center; }
+  .btn { padding: 4px 12px; border: 1px solid #0f3460; background: #1a1a2e; color: #e0e0e0; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .btn:hover { background: #0f3460; }
+  .btn.active { background: #e94560; border-color: #e94560; }
+
+  #stats-bar { display: flex; gap: 24px; padding: 6px 20px; background: #16213e; border-bottom: 1px solid #0f3460; font-size: 13px; flex-shrink: 0; flex-wrap: wrap; }
+  .stat { display: flex; gap: 6px; }
+  .stat-label { color: #8892b0; }
+  .stat-value { font-weight: 600; }
+
+  #main { display: flex; flex: 1; min-height: 0; }
+  #map { flex: 1; min-width: 0; }
+  #sidebar { width: 420px; background: #16213e; border-left: 1px solid #0f3460; overflow-y: auto; flex-shrink: 0; padding: 16px; }
+  #sidebar h2 { font-size: 15px; margin-bottom: 12px; color: #e94560; border-bottom: 1px solid #0f3460; padding-bottom: 6px; }
+  #sidebar h3 { font-size: 13px; margin: 12px 0 6px; color: #8892b0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+  .detail-key { color: #8892b0; }
+  .detail-val { font-weight: 600; }
+  .util-bar-bg { background: #1a1a2e; border-radius: 3px; height: 6px; margin: 2px 0 6px; }
+  .util-bar-fill { height: 6px; border-radius: 3px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; }
+  .tag-connected { background: #00c853; color: #000; }
+  .tag-rejected { background: #ff1744; color: #fff; }
+  .tag-current { background: #ffd600; color: #000; }
+
+  #cost-chart-container, #supply-chart-container { margin: 8px 0; position: relative; height: 180px; }
+  #iteration-chart-container { margin: 8px 0; position: relative; height: 200px; }
+
+  .leaflet-container { background: #1a1a2e; }
+
+  .layer-toggle { display: flex; gap: 4px; }
+</style>
+</head>
+<body>
+
+<div id="top-bar">
+  <h1>DH-COMPASS</h1>
+  <div id="slider-container">
+    <button class="btn" onclick="stepTo(0)">&#9198;</button>
+    <button class="btn" onclick="stepBy(-1)">&#9664;</button>
+    <input type="range" id="step-slider" min="0" max="0" value="0" oninput="stepTo(+this.value)">
+    <button class="btn" onclick="stepBy(1)">&#9654;</button>
+    <button class="btn" onclick="stepTo(data.iterations.length - 1)">&#9197;</button>
+    <span id="step-label">Step 0 / 0</span>
+  </div>
+  <div class="layer-toggle">
+    <button class="btn" id="btn-lhd" onclick="toggleLayer('lhd')">LHD</button>
+    <button class="btn" id="btn-edges" onclick="toggleLayer('edges')">Edges</button>
+    <button class="btn" id="btn-paths" onclick="toggleLayer('paths')">Paths</button>
+  </div>
+</div>
+
+<div id="stats-bar">
+  <div class="stat"><span class="stat-label">Connected:</span><span class="stat-value" id="s-connected">0</span></div>
+  <div class="stat"><span class="stat-label">Rejected:</span><span class="stat-value" id="s-rejected">0</span></div>
+  <div class="stat"><span class="stat-label">Cumulative Cost:</span><span class="stat-value" id="s-cost">-</span></div>
+  <div class="stat"><span class="stat-label">Connected Demand:</span><span class="stat-value" id="s-demand">-</span></div>
+</div>
+
+<div id="main">
+  <div id="map"></div>
+  <div id="sidebar">
+    <div id="sidebar-content">
+      <p style="color:#8892b0">Select a subgraph on the map or use the slider.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let data = null;
+let map, edgesLayer, lhdLayer, pathsLayer, highlightLayer;
+let costChart = null, supplyChart = null, iterChart = null;
+let currentStep = 0;
+let selectedSubgraphId = null;
+let layers = { lhd: false, edges: true, paths: true };
+
+const COLORS = {
+  connected: '#00c853',
+  rejected: '#ff1744',
+  current: '#ffd600',
+  path: '#00e676',
+  lhd_low: '#1a237e',
+  lhd_high: '#ff6f00',
+};
+
+const TECH_COLORS = {
+  heat_pump: '#2196F3',
+  boiler: '#FF9800',
+  chp: '#4CAF50',
+  electrode_boiler: '#9C27B0',
+  industrial_excess_heat: '#795548',
+  biomass_boiler: '#8BC34A',
+  biomass_chp: '#33691E',
+  waste_to_energy: '#FF5722',
+  geothermal: '#E91E63',
+  river_heat_pump: '#00BCD4',
+  wwtp_heat_pump: '#009688',
+  heat_storage: '#E65100',
+  battery_storage: '#607D8B',
+};
+
+const TECH_LABELS = {
+  heat_pump: 'Heat Pump',
+  boiler: 'Gas Boiler',
+  chp: 'CHP',
+  electrode_boiler: 'Electrode Boiler',
+  industrial_excess_heat: 'Industrial Excess Heat',
+  biomass_boiler: 'Biomass Boiler',
+  biomass_chp: 'Biomass CHP',
+  waste_to_energy: 'Waste-to-Energy',
+  geothermal: 'Hydrothermal Geothermal',
+  river_heat_pump: 'River HP',
+  wwtp_heat_pump: 'WWTP HP',
+  heat_storage: 'Heat Storage',
+  battery_storage: 'Battery',
+};
+
+function fmt(n, d=0) { return n != null ? n.toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d}) : '-'; }
+
+function cartoTileUrl() {
+  return 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+}
+
+function init() {
+  map = L.map('map', { zoomControl: true }).setView([51.45, 7.0], 13);
+  L.tileLayer(cartoTileUrl(), {
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> (<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL</a>)',
+    maxZoom: 20, subdomains: 'abcd'
+  }).addTo(map);
+
+  lhdLayer = L.layerGroup();
+  edgesLayer = L.layerGroup().addTo(map);
+  pathsLayer = L.layerGroup().addTo(map);
+  highlightLayer = L.layerGroup().addTo(map);
+
+  const dataEl = document.getElementById('viewer-data');
+  if (dataEl) {
+    try {
+      data = JSON.parse(dataEl.textContent);
+    } catch (e) {
+      document.getElementById('sidebar-content').innerHTML = `<p style="color:#ff1744">Failed to parse embedded data: ${e.message}</p>`;
+      return;
+    }
+  }
+
+  if (!data) {
+    const params = new URLSearchParams(window.location.search);
+    const dataUrl = params.get('data') || 'viewer_data.json';
+    fetch(dataUrl)
+      .then(r => r.json())
+      .then(json => {
+        data = json;
+        onLoad();
+      })
+      .catch(e => {
+        document.getElementById('sidebar-content').innerHTML = `<p style="color:#ff1744">Failed to load ${dataUrl}: ${e.message}</p><p style="color:#8892b0;font-size:12px;margin-top:8px">Tip: Open the self-contained viewer HTML in outputs/ instead, or serve this directory via HTTP (<code>python -m http.server</code>).</p>`;
+      });
+    return;
+  }
+}
+
+function onLoad() {
+  document.getElementById('step-slider').max = data.iterations.length - 1;
+
+  if (data.config) {
+    document.querySelector('#top-bar h1').textContent =
+      `DH-COMPASS — ${data.config.case || ''}`;
+  }
+
+  renderLHDLayer();
+  stepTo(0);
+  fitMap();
+}
+
+function fitMap() {
+  let allCoords = [];
+  if (data.lhd_edges_geojson) {
+    data.lhd_edges_geojson.features.forEach(f => {
+      if (f.geometry.type === 'LineString') {
+        f.geometry.coordinates.forEach(c => allCoords.push(c));
+      }
+    });
+  }
+  if (allCoords.length > 0) {
+    map.fitBounds(L.latLngBounds(allCoords.map(c => [c[1], c[0]])), { padding: [20, 20] });
+  }
+}
+
+function getSubgraphColor(sgId, step) {
+  const it = data.iterations[step];
+  if (sgId === it.subgraph_id) return COLORS.current;
+  const info = data.subgraphs[sgId];
+  if (!info) return '#555';
+  const wasConnected = it.cumulative_connected_ids.includes(sgId);
+  return wasConnected ? COLORS.connected : COLORS.rejected;
+}
+
+function getSubgraphWeight(sgId, step) {
+  return sgId === data.iterations[step].subgraph_id ? 4 : 2;
+}
+
+function stepTo(step) {
+  if (!data || step < 0 || step >= data.iterations.length) return;
+  currentStep = step;
+  document.getElementById('step-slider').value = step;
+  document.getElementById('step-label').textContent = `Step ${step + 1} / ${data.iterations.length}`;
+
+  const it = data.iterations[step];
+  updateStats(it);
+  renderEdgesLayer(step);
+  renderPathsLayer(step);
+  renderSidebar(it);
+  renderIterationChart(step);
+  updateLayerButtons();
+}
+
+function stepBy(delta) { stepTo(currentStep + delta); }
+
+function updateStats(it) {
+  const connected = it.cumulative_connected_ids.length;
+  const rejected = it.step + 1 - connected;
+  document.getElementById('s-connected').textContent = connected;
+  document.getElementById('s-rejected').textContent = rejected;
+  document.getElementById('s-cost').textContent = fmt(it.central_cost_total) + ' \u20AC/a';
+  document.getElementById('s-demand').textContent = fmt(
+    it.cumulative_supply ? it.cumulative_supply.total_heat_production_mwh : 0, 1
+  ) + ' MWh/a';
+}
+
+function renderLHDLayer() {
+  lhdLayer.clearLayers();
+  if (!data.lhd_edges_geojson) return;
+  const maxLhd = Math.max(
+    ...data.lhd_edges_geojson.features.map(f => f.properties.linear_heat_density || 0),
+    0.1
+  );
+  L.geoJSON(data.lhd_edges_geojson, {
+    style: f => ({
+      color: lhdColor(f.properties.linear_heat_density / maxLhd),
+      weight: 2,
+      opacity: 0.5,
+    }),
+    onEachFeature: (f, l) => {
+      l.bindTooltip(`LHD: ${f.properties.linear_heat_density.toFixed(2)} MWh/m/a<br>Sg: ${f.properties.subgraph_id}`, { sticky: true });
+    }
+  }).addTo(lhdLayer);
+}
+
+function lhdColor(t) {
+  const r = Math.round(26 + t * (255 - 26));
+  const g = Math.round(35 + t * (111 - 35));
+  const b = Math.round(126 + t * (0 - 126));
+  return `rgb(${r},${g},${b})`;
+}
+
+function renderEdgesLayer(step) {
+  edgesLayer.clearLayers();
+  const it = data.iterations[step];
+  const connectedIds = new Set(it.cumulative_connected_ids);
+
+  Object.entries(data.subgraphs).forEach(([sgIdStr, sg]) => {
+    const sgId = parseInt(sgIdStr);
+    const color = getSubgraphColor(sgId, step);
+    const weight = getSubgraphWeight(sgId, step);
+    const opacity = sgId === it.subgraph_id ? 1.0 : 0.7;
+
+    const layer = L.geoJSON(sg.edges_geojson, {
+      style: { color, weight, opacity }
+    });
+    layer.on('click', () => selectSubgraph(sgId, step));
+    layer.on('mouseover', () => { if (sgId !== it.subgraph_id) layer.setStyle({ weight: weight + 2 }); });
+    layer.on('mouseout', () => { if (sgId !== it.subgraph_id) layer.setStyle({ weight }); });
+    layer.addTo(edgesLayer);
+  });
+}
+
+function renderPathsLayer(step) {
+  pathsLayer.clearLayers();
+  const it = data.iterations[step];
+  const connectedIds = new Set(it.cumulative_connected_ids);
+
+  data.iterations.forEach((prevIt, i) => {
+    if (i > step) return;
+    if (prevIt.connecting_path_geojson && prevIt.decision === 'connected') {
+      L.geoJSON(prevIt.connecting_path_geojson, {
+        style: { color: COLORS.path, weight: 3, opacity: 0.8, dashArray: '6 4' }
+      }).addTo(pathsLayer);
+    }
+  });
+}
+
+function selectSubgraph(sgId, step) {
+  selectedSubgraphId = sgId;
+  renderSidebar(data.iterations[step], sgId);
+}
+
+function computeUtilization(limits, supply) {
+  if (!limits || !supply || !supply.supply) return [];
+  const results = [];
+  for (const [key, info] of Object.entries(limits)) {
+    let used = 0, label = TECH_LABELS[key] || key;
+    if (key === 'biomass') {
+      label = 'Biomass (shared fuel)';
+      const bmHb = supply.supply['biomass_boiler'];
+      const bmChp = supply.supply['biomass_chp'];
+      const bmHbHeat = bmHb ? (bmHb.annual_energy_mwh || 0) : 0;
+      const bmChpHeat = bmChp ? (bmChp.annual_heat_energy_mwh || 0) : 0;
+      const bmHbFuel = bmHbHeat / (info.boiler_efficiency || 1);
+      const bmChpFuel = bmChpHeat / ((info.chp_power_to_heat_ratio || 1) * (info.chp_eff_electric || 1));
+      used = bmHbFuel + bmChpFuel;
+    } else if (info.metric === 'energy') {
+      const td = supply.supply[key];
+      if (td) {
+        const eKey = (key === 'chp' || key === 'biomass_chp') ? 'annual_heat_energy_mwh' : 'annual_energy_mwh';
+        used = td[eKey] || 0;
+      }
+    } else if (info.metric === 'capacity') {
+      const td = supply.supply[key];
+      if (td) used = td.capacity_kw || td.capacity_th_kw || 0;
+    }
+    results.push({ label, used, limit: info.limit, unit: info.unit, pct: info.limit > 0 ? (used / info.limit) * 100 : 0 });
+  }
+  return results;
+}
+
+function renderSidebar(it, sgId) {
+  const container = document.getElementById('sidebar-content');
+  if (!sgId) sgId = it.subgraph_id;
+  const sg = data.subgraphs[sgId];
+  if (!sg) { container.innerHTML = '<p>No data for this subgraph.</p>'; return; }
+
+  const tag = sg.is_connected
+    ? '<span class="tag tag-connected">CONNECTED</span>'
+    : '<span class="tag tag-rejected">REJECTED</span>';
+
+  let html = `
+    <h2>Subgraph #${sgId} ${tag}</h2>
+    <h3>Demand & Topology</h3>
+    <div class="detail-row"><span class="detail-key">Annual Demand</span><span class="detail-val">${fmt(sg.annual_heat_demand_mwh, 1)} MWh/a</span></div>
+    <div class="detail-row"><span class="detail-key">Peak Load</span><span class="detail-val">${fmt(sg.peak_load_kw, 0)} kW</span></div>
+    <div class="detail-row"><span class="detail-key">Buildings</span><span class="detail-val">${sg.buildings}</span></div>
+    <div class="detail-row"><span class="detail-key">Network Length</span><span class="detail-val">${fmt(sg.total_network_length_m, 0)} m</span></div>
+    <div class="detail-row"><span class="detail-key">Avg LHD</span><span class="detail-val">${sg.avg_lhd.toFixed(2)} MWh/m/a</span></div>
+    <div class="detail-row"><span class="detail-key">Connection Length</span><span class="detail-val">${fmt(sg.connection_length_m, 0)} m</span></div>
+
+    <h3>Cost Comparison</h3>
+    <div class="detail-row"><span class="detail-key">Central (total at step)</span><span class="detail-val">${fmt(it.central_cost_total)} \u20AC/a</span></div>
+    <div class="detail-row"><span class="detail-key">Marginal Central</span><span class="detail-val">${fmt(it.marginal_central_cost)} \u20AC/a</span></div>
+    <div class="detail-row"><span class="detail-key">Decentral</span><span class="detail-val">${fmt(it.decentral_cost)} \u20AC/a</span></div>
+    <div class="detail-row"><span class="detail-key">Grid Cost (raw)</span><span class="detail-val">${fmt(sg.central_grid_cost_raw)} \u20AC</span></div>
+    <div id="cost-chart-container"><canvas id="cost-chart"></canvas></div>
+
+    <h3>Cumulative Supply (at this step)</h3>
+  `;
+
+  const supply = it.cumulative_supply;
+  if (supply) {
+    html += `<div id="supply-chart-container"><canvas id="supply-chart"></canvas></div>`;
+    if (supply.supply) {
+      Object.entries(supply.supply).forEach(([tech, td]) => {
+        const cap = td.capacity_kw || td.capacity_th_kw || td.capacity_el_kw || 0;
+        const eKey = (tech === 'chp' || tech === 'biomass_chp') ? 'annual_heat_energy_mwh' : 'annual_energy_mwh';
+        const e = td[eKey] || 0;
+        html += `<div class="detail-row"><span class="detail-key">${TECH_LABELS[tech] || tech}</span><span class="detail-val">${fmt(cap, 0)} kW / ${fmt(e, 1)} MWh (${(td.energy_share_pct || 0).toFixed(1)}%)</span></div>`;
+      });
+    }
+    html += `<div class="detail-row"><span class="detail-key">Total Heat Production</span><span class="detail-val">${fmt(supply.total_heat_production_mwh, 1)} MWh/a</span></div>`;
+
+    if (supply.storage && Object.keys(supply.storage).length > 0) {
+      html += `<h3>Storage</h3>`;
+      Object.entries(supply.storage).forEach(([st, sd]) => {
+        html += `<div class="detail-row"><span class="detail-key">${TECH_LABELS[st] || st}</span><span class="detail-val">${fmt(sd.capacity_kwh, 0)} kWh / ${fmt(sd.power_kw, 0)} kW</span></div>`;
+      });
+    }
+
+    if (data.potential_limits) {
+      const utils = computeUtilization(data.potential_limits, supply);
+      if (utils.length > 0) {
+        html += `<h3>Potential Utilization</h3>`;
+        utils.forEach(u => {
+          const barColor = u.pct > 90 ? '#ff1744' : u.pct > 50 ? '#ffd600' : '#00c853';
+          html += `<div class="detail-row"><span class="detail-key">${u.label}</span><span class="detail-val">${fmt(u.used, 1)} / ${fmt(u.limit, 1)} ${u.unit} (${u.pct.toFixed(1)}%)</span></div>`;
+          html += `<div class="util-bar-bg"><div class="util-bar-fill" style="background:${barColor};width:${Math.min(u.pct, 100)}%;"></div></div>`;
+        });
+      }
+    }
+  } else {
+    html += '<p style="color:#8892b0;font-size:13px">Not connected — no central supply.</p>';
+  }
+
+  if (sg.cost_breakdown) {
+    html += `<h3>Cost Breakdown (central, annualized)</h3>`;
+    const cb = sg.cost_breakdown;
+    if (cb.investment) {
+      html += `<div class="detail-row"><span class="detail-key">Investment</span><span class="detail-val">${fmt(cb.investment.total_eur)} \u20AC/a</span></div>`;
+      Object.entries(cb.investment.by_technology_eur || {}).forEach(([t, v]) => {
+        html += `<div class="detail-row" style="padding-left:12px"><span class="detail-key">${TECH_LABELS[t] || t}</span><span class="detail-val">${fmt(v)} \u20AC/a</span></div>`;
+      });
+    }
+    if (cb.fixed_om) {
+      html += `<div class="detail-row"><span class="detail-key">Fixed O&M</span><span class="detail-val">${fmt(cb.fixed_om.total_eur)} \u20AC/a</span></div>`;
+    }
+    if (cb.operational) {
+      html += `<div class="detail-row"><span class="detail-key">Net Operational</span><span class="detail-val">${fmt(cb.operational.net_operational_annual_eur)} \u20AC/a</span></div>`;
+    }
+  }
+
+  if (sg.clusters && sg.clusters.length > 0) {
+    html += `<h3>Decentral Clusters (${sg.clusters.length})</h3>`;
+    html += '<div style="max-height:200px;overflow-y:auto">';
+    sg.clusters.forEach(c => {
+      html += `<div class="detail-row"><span class="detail-key">Cluster ${c.cluster_id} (${c.n_buildings} bldg)</span><span class="detail-val">${fmt(c.scaled_annualized_cost_eur)} \u20AC/a</span></div>`;
+    });
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+  renderCostChart(it);
+  renderSupplyChart(it);
+}
+
+function renderCostChart(it) {
+  const canvas = document.getElementById('cost-chart');
+  if (!canvas) return;
+  if (costChart) costChart.destroy();
+
+  costChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: ['Marginal Central', 'Decentral'],
+      datasets: [{
+        data: [it.marginal_central_cost, it.decentral_cost],
+        backgroundColor: [it.marginal_central_cost <= it.decentral_cost ? '#00c853' : '#ff1744', '#2196F3'],
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { color: '#8892b0', callback: v => fmt(v) }, grid: { color: '#1a1a2e' } },
+        x: { ticks: { color: '#8892b0' }, grid: { display: false } },
+      }
+    }
+  });
+}
+
+function renderSupplyChart(it) {
+  const canvas = document.getElementById('supply-chart');
+  if (!canvas || !it.cumulative_supply || !it.cumulative_supply.supply) return;
+  if (supplyChart) supplyChart.destroy();
+
+  const supply = it.cumulative_supply.supply;
+  const labels = [], values = [], colors = [];
+  Object.entries(supply).forEach(([tech, td]) => {
+    const eKey = (tech === 'chp' || tech === 'biomass_chp') ? 'annual_heat_energy_mwh' : 'annual_energy_mwh';
+    labels.push(TECH_LABELS[tech] || tech);
+    values.push(td[eKey] || 0);
+    colors.push(TECH_COLORS[tech] || '#999');
+  });
+
+  supplyChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { color: '#8892b0', callback: v => fmt(v, 0) }, grid: { color: '#1a1a2e' }, title: { display: true, text: 'MWh/a', color: '#8892b0' } },
+        x: { ticks: { color: '#8892b0' }, grid: { display: false } },
+      }
+    }
+  });
+}
+
+function renderIterationChart(step) {
+  let container = document.getElementById('iteration-chart-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'iteration-chart-container';
+    const sidebar = document.getElementById('sidebar');
+    sidebar.appendChild(container);
+  }
+  container.innerHTML = '<canvas id="iter-chart"></canvas>';
+  const canvas = document.getElementById('iter-chart');
+  if (iterChart) iterChart.destroy();
+
+  const labels = [], marginal = [], decentral = [];
+  const stepData = data.iterations.slice(0, step + 1);
+  stepData.forEach(it => {
+    labels.push(`#${it.subgraph_id}`);
+    marginal.push(it.marginal_central_cost);
+    decentral.push(it.decentral_cost);
+  });
+
+  iterChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Marginal Central',
+          data: marginal,
+          backgroundColor: marginal.map((m, i) => stepData[i].decision === 'connected' ? '#00c853' : '#ff1744'),
+          borderRadius: 2,
+        },
+        {
+          label: 'Decentral',
+          data: decentral,
+          backgroundColor: '#2196F3aa',
+          borderRadius: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#8892b0', font: { size: 11 } } },
+      },
+      scales: {
+        y: { ticks: { color: '#8892b0', callback: v => fmt(v) }, grid: { color: '#1a1a2e' }, title: { display: true, text: '\u20AC/a', color: '#8892b0' } },
+        x: { ticks: { color: '#8892b0', font: { size: 10 } }, grid: { display: false } },
+      }
+    }
+  });
+}
+
+function toggleLayer(name) {
+  layers[name] = !layers[name];
+  if (name === 'lhd') layers[name] ? lhdLayer.addTo(map) : map.removeLayer(lhdLayer);
+  if (name === 'edges') layers[name] ? edgesLayer.addTo(map) : map.removeLayer(edgesLayer);
+  if (name === 'paths') layers[name] ? pathsLayer.addTo(map) : map.removeLayer(pathsLayer);
+  updateLayerButtons();
+}
+
+function updateLayerButtons() {
+  ['lhd', 'edges', 'paths'].forEach(n => {
+    const btn = document.getElementById('btn-' + n);
+    btn.classList.toggle('active', layers[n]);
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') stepBy(-1);
+  if (e.key === 'ArrowRight') stepBy(1);
+});
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>

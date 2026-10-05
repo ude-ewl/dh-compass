@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "source": {
+    "title": "BDEW/VKU/GEODE, Leitfaden Abwicklung von Standardlastprofilen Gas, KoV XV, 27 March 2026, Appendix 6 (corroboration to printed precision)",
+    "url": "https://www.bdew.de/media/documents/260327_LF_SLP_Gas_KoV_XV_CO4f7Rb.pdf",
+    "license": "No explicit redistribution grant identified; numerical extraction rights basis requires review",
+    "transcription_credit": "Chair of Energy Economics, Universität Duisburg-Essen",
+    "original_full_precision_source": "Not yet identified; existing workbook precision preserved",
+    "archive_url": "https://web.archive.org/web/20260619125016/https://www.bdew.de/media/documents/260327_LF_SLP_Gas_KoV_XV_CO4f7Rb.pdf"
+  },
+  "parameters": [
+    {
+      "category": "HEF",
+      "characteristics": "03",
+      "A": 3.0469694602,
+      "B": -37.1833141315,
+      "C": 5.6727846624,
+      "D": 0.0961930604,
+      "m_H": 0.0,
+      "b_H": 0.0,
+      "m_w": 0.0,
+      "b_w": 0.0
+    },
+    {
+      "category": "HMF",
+      "characteristics": "03",
+      "A": 2.3877617912,
+      "B": -34.7213605129,
+      "C": 5.8164304015,
+      "D": 0.1208193679,
+      "m_H": 0.0,
+      "b_H": 0.0,
+      "m_w": 0.0,
+      "b_w": 0.0
+    }
+  ],
+  "weekday_factors": [
+    {
+      "category": "HEF",
+      "1": 1.0,
+      "2": 1.0,
+      "3": 1.0,
+      "4": 1.0,
+      "5": 1.0,
+      "6": 1.0,
+      "7": 1.0
+    },
+    {
+      "category": "HMF",
+      "1": 1.0,
+      "2": 1.0,
+      "3": 1.0,
+      "4": 1.0,
+      "5": 1.0,
+      "6": 1.0,
+      "7": 1.0
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+[scenario]
+case = "kamen"
+# Replace with the study area's WGS84 bounding box when running this scenario.
+bbox = [7.60, 51.55, 7.75, 51.65]

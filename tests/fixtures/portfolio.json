@@ -1,0 +1,84 @@
+{
+  "biomass_chp_feed_in_kwh": 75.0,
+  "chp_feed_in_kwh": 300.0,
+  "elec_eb_kwh": 1000.0,
+  "elec_grid_kwh": 4000.0,
+  "elec_hp_kwh": 1500.0,
+  "elec_hp_river_kwh": 400.0,
+  "elec_hp_wwtp_kwh": 250.0,
+  "fuel_biomass_boiler_kwh": 1200.0,
+  "fuel_biomass_chp_kwh": 250.0,
+  "fuel_boiler_kwh": 2222.0,
+  "fuel_chp_kwh": 3000.0,
+  "pv_feed_in_kwh": 150.0,
+  "storage": {
+    "battery_storage": {
+      "capacity_kwh": 30.5678,
+      "power_kw": 4.5
+    },
+    "heat_storage": {
+      "capacity_kwh": 20.1234,
+      "power_kw": 3.4
+    }
+  },
+  "supply": {
+    "biomass_boiler": {
+      "annual_energy_mwh": 1.0,
+      "capacity_kw": 6.0,
+      "energy_share_pct": 5.88
+    },
+    "biomass_chp": {
+      "annual_heat_energy_mwh": 0.5,
+      "capacity_el_kw": 1.25,
+      "capacity_th_kw": 6.25,
+      "energy_share_pct": 2.94
+    },
+    "boiler": {
+      "annual_energy_mwh": 2.0,
+      "capacity_kw": 10.0,
+      "energy_share_pct": 11.76
+    },
+    "chp": {
+      "annual_heat_energy_mwh": 2.0,
+      "capacity_el_kw": 2.5,
+      "capacity_th_kw": 3.85,
+      "energy_share_pct": 11.76
+    },
+    "electrode_boiler": {
+      "annual_energy_mwh": 1.0,
+      "capacity_kw": 4.0,
+      "energy_share_pct": 5.88
+    },
+    "geothermal": {
+      "annual_energy_mwh": 1.0,
+      "capacity_kw": 8.0,
+      "energy_share_pct": 5.88
+    },
+    "heat_pump": {
+      "annual_energy_mwh": 5.0,
+      "capacity_kw": 12.3456,
+      "energy_share_pct": 29.41
+    },
+    "industrial_excess_heat": {
+      "annual_energy_mwh": 2.0,
+      "capacity_kw": 5.0,
+      "energy_share_pct": 11.76
+    },
+    "river_heat_pump": {
+      "annual_energy_mwh": 1.0,
+      "capacity_kw": 9.0,
+      "energy_share_pct": 5.88
+    },
+    "waste_to_energy": {
+      "annual_energy_mwh": 1.0,
+      "capacity_kw": 7.0,
+      "energy_share_pct": 5.88
+    },
+    "wwtp_heat_pump": {
+      "annual_energy_mwh": 0.5,
+      "capacity_kw": 10.0,
+      "energy_share_pct": 2.94
+    }
+  },
+  "total_heat_production_mwh": 17.0
+}
