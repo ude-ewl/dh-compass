@@ -2,22 +2,143 @@
 
 DH-COMPASS compares district-heating network expansion and supply with decentralized alternatives. It currently works **only in North Rhine-Westphalia (NRW), Germany**, using regional building-demand and heat-potential data.
 
-## Setup and commands
+## Installation
+
+Install the Python application and its locked dependencies with
+[uv](https://docs.astral.sh/uv/):
 
 ```bash
 uv sync --locked
-uv run pytest
-uv run dh-compass run --config configs/scenarios/bad_oeynhausen.toml
-uv run dh-compass charts outputs/bad_oeynhausen/<timestamp>/full_results.json
+uv run dh-compass --help
 ```
 
-Historical temperatures are loaded automatically for the selected area using
-Open-Meteo ERA5-Land, then cached by location and year. The default
-weather year is 2022; change `demand.slp_year` to another completed year.
-Demand profiles and heat-pump calculations use the same local weather.
+A production run also needs the local NRW building-demand database and heat
+supply potential layers listed in [`data/README.md`](data/README.md). In
+particular, place the prepared building database at
+`data/external/Warmebedarf_NRW.gdb` (https://www.opengeodata.nrw.de/produkte/umwelt_klima/energie/kwp/KWP-NRW-Waermebedarf_EPSG25832_Geodatabase.zip) and extract the resource bundle
+`data/external/heat_supply_potentials/` (available in 'Releases'), unless the scenario overrides those
+paths. These large provider datasets are not included in the repository.
 
-For the local browser application, install the optional web dependencies and
-build or serve the frontend:
+DH-COMPASS prefers Gurobi when its library and licence are available and
+otherwise uses the installed HiGHS solver. No solver licence is required for
+HiGHS. Run `uv run pytest` to execute the test suite; tests do not require the
+external production data.
+
+## Command-line workflow (no browser)
+
+### 1. Choose or create a scenario
+
+Ready-to-edit scenarios are in [`configs/scenarios/`](configs/scenarios/).
+Each scenario inherits [`configs/default.toml`](configs/default.toml), so it
+only needs to contain values that differ from the defaults. At minimum, give a
+run a recognizable `case` and an NRW bounding box in WGS84 coordinate order
+`[west, south, east, north]`:
+
+```toml
+[scenario]
+case = "my_nrw_area"
+bbox = [6.95, 51.40, 7.05, 51.48]
+
+# Optional overrides; all other values come from configs/default.toml.
+[demand]
+slp_year = 2022
+
+[optimization]
+max_workers = 4
+```
+
+Copy an existing scenario rather than editing `default.toml` when comparing
+areas or assumptions. Model settings, cost curves, resource selection, and
+input path overrides are documented in
+[`docs/configuration.md`](docs/configuration.md). Paths are resolved from the
+project root, not from the shell's current directory.
+
+### 2. Run the pipeline
+
+From the repository, run:
+
+```bash
+uv run dh-compass run --config configs/scenarios/my_nrw_area.toml
+```
+
+The command loads buildings and streets, creates heat-density candidate areas,
+assesses local resources, compares district-heating expansion with decentralized
+supply, and writes all reports. The first run for a location needs network
+access to retrieve its OpenStreetMap road network and Open-Meteo ERA5-Land
+weather. Both are cached under `data/cache/`; a matching cache can be reused
+offline. Demand profiles and heat-pump calculations use the same local weather.
+Use a completed historical year for `demand.slp_year` (2022 by default) to keep
+comparisons reproducible.
+
+By default, results are placed in a new timestamped directory:
+
+```text
+outputs/<case>/<YYYYMMDDTHHMMSSZ>/
+```
+
+For scripts or batch jobs, select the exact destination explicitly:
+
+```bash
+uv run dh-compass run \
+  --config configs/scenarios/my_nrw_area.toml \
+  --output-dir outputs/my_nrw_area/manual-run
+```
+
+Use a new output directory for each comparison so an earlier run is not
+partially overwritten. Large areas can take a long time and substantially
+increase memory and solver requirements; start with a small bounding box.
+
+### 3. Review the artifacts
+
+A successful output directory contains:
+
+- `full_results.json` — canonical summary, final network, supply portfolios,
+  annualized costs, and per-candidate decisions;
+- `viewer_data.html` and `viewer_data.json` — a standalone local map/report and
+  its data (the HTML file can be opened directly, without starting the web app);
+- `chart_capacity.png`, `chart_energy_shares.png`, and cost charts — generated
+  when the run has a connected network;
+- `final_network.geojson` and `lhd_graph.geojson` — accepted network and
+  candidate heat-density network for GIS tools, when geospatial export is
+  available;
+- `performance_metrics.json` — optimization timing and model-size metrics;
+- `data_provenance.json` and `weather_provenance.json` — source and weather
+  metadata.
+
+Charts can be regenerated from an existing result, optionally into a separate
+directory:
+
+```bash
+uv run dh-compass charts \
+  outputs/my_nrw_area/<timestamp>/full_results.json \
+  --output-dir outputs/my_nrw_area/<timestamp>/charts
+```
+
+The interpretation and units of reported values are described in
+[`docs/methodology.md`](docs/methodology.md). In particular, the reported cost
+figures are annualized and the network topology is heuristic rather than a
+global topology optimum.
+
+### 4. Use the pipeline from Python (optional)
+
+Automation can call the same browser-independent pipeline directly:
+
+```python
+from dh_compass.config import load_config
+from dh_compass.pipeline import run_pipeline
+
+config = load_config("configs/scenarios/my_nrw_area.toml")
+artifacts = run_pipeline(config, output_dir="outputs/my_nrw_area/api-run")
+print(artifacts.output_dir)
+print(artifacts.full_results["summary"])
+```
+
+The returned `RunArtifacts` also exposes prepared geospatial data, assessed
+resources, optimization results, and viewer data for further analysis.
+
+## Browser application (optional)
+
+Install the optional web dependencies and build the frontend:
 
 ```bash
 uv sync --extra web
@@ -32,17 +153,11 @@ uv run uvicorn dh_compass.web.app:create_app --factory --reload
 # in a second terminal: cd frontend && npm run dev
 ```
 
-The web command serves `frontend/dist` by default.  A wheel deployment can
-copy that directory into its release image or set
-`DH_COMPASS_WEB_FRONTEND_STATIC_PATH` to a separately built directory.  See
+The web command serves `frontend/dist` by default. A wheel deployment can copy
+that directory into its release image or set
+`DH_COMPASS_WEB_FRONTEND_STATIC_PATH` to a separately built directory. See
 [`docs/frontend/operations.md`](docs/frontend/operations.md) for startup
 checks, backups, updates, and troubleshooting.
-
-A full scenario run requires the external geospatial inputs described in
-[`data/README.md`](data/README.md). The app prefers Gurobi when its library and
-license work, and automatically uses the bundled HiGHS solver otherwise.
-`uv sync` installs HiGHS; no solver license is required for the fallback.
-The unit tests use small in-memory data and mock solver calls.
 
 ## Browser workflow
 
