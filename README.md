@@ -192,16 +192,17 @@ tests/                   unit and integration tests
 See [architecture](docs/architecture.md), [configuration](docs/configuration.md),
 [methodology](docs/methodology.md), and [data setup](data/README.md).
 
-## License and source transfer
+## License and data
 
 DH-COMPASS is licensed under [MIT](LICENSE), with the approved copyright:
 Copyright (c) 2026 Chair of Energy Economics, Universität Duisburg-Essen.
 
 Dependencies retain their terms in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-Production runs use local
-inputs described in [data/README.md](data/README.md). Existing parameters and
-configuration remain unchanged. A separate CC BY 4.0 resource bundle is available;
-the NRW GDB must be supplied locally, you can download it from here (https://www.opengeodata.nrw.de/produkte/umwelt_klima/energie/kwp/KWP-NRW-Waermebedarf_EPSG25832_Geodatabase.zip). The slim attributed HEF03/HMF03 coefficient
-JSON is bundled by default; additional profiles require a local input override.
+Production runs use the local inputs described in
+[data/README.md](data/README.md). A separate CC BY 4.0 resource bundle is
+available. Download the NRW GDB from the
+[official NRW source](https://www.opengeodata.nrw.de/produkte/umwelt_klima/energie/kwp/KWP-NRW-Waermebedarf_EPSG25832_Geodatabase.zip).
+The attributed HEF03/HMF03 coefficient JSON is bundled by default; additional
+profiles require a local input override.
 See [SLP setup and provenance](docs/slp-inputs.md).
 See [DATA_LICENSES.md](DATA_LICENSES.md) and [CONTRIBUTING.md](CONTRIBUTING.md).

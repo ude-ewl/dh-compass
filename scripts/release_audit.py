@@ -1,15 +1,11 @@
-"""Scan current source or release archives without printing secret values."""
+"""Scan tracked and unignored repository files without printing secret values."""
 
 from __future__ import annotations
 
 import argparse
 import re
 import subprocess
-import tarfile
-import zipfile
 from pathlib import Path, PurePosixPath
-
-from release_files import release_paths
 
 ROOT = Path(__file__).resolve().parents[1]
 RESTRICTED = {
@@ -42,39 +38,20 @@ def inspect_entry(name: str, content: bytes) -> list[str]:
         or path.suffix.lower() in {".grib", ".db", ".sqlite", ".sqlite3", ".xlsx", ".xls", ".xlsm", ".gpkg", ".tif", ".tiff", ".zip", ".whl", ".exe", ".dll", ".pyc", ".pyo"}
         or any(part in {"node_modules", "outputs", ".git", ".venv", "__pycache__", "dist", "build"} or part.endswith(".egg-info") for part in path.parts)
     ):
-        failures.append(f"{name}: forbidden release path")
+        failures.append(f"{name}: forbidden repository path")
     if "data" in path.parts:
         data_path = PurePosixPath(*path.parts[path.parts.index("data"):]).as_posix()
         if data_path not in {"data/README.md", "data/reference/sh_to_wh_ratio.csv",
                              "data/reference/slp_parameters.json", "data/reference/.gitkeep"}:
-            failures.append(f"{name}: unreviewed data is excluded from source releases")
+            failures.append(f"{name}: unreviewed data is not permitted in the repository")
     if any(pattern.search(content) for pattern in SECRET_PATTERNS):
         failures.append(f"{name}: potential credential or personal filesystem path (redacted)")
     return failures
 
 
-def archive_entries(path: Path):
-    if zipfile.is_zipfile(path):
-        with zipfile.ZipFile(path) as archive:
-            for entry in archive.infolist():
-                if not entry.is_dir():
-                    yield entry.filename, archive.read(entry)
-    else:
-        with tarfile.open(path) as archive:
-            for entry in archive:
-                if entry.isfile():
-                    handle = archive.extractfile(entry)
-                    if handle:
-                        yield entry.name, handle.read()
-
-
 def source_entries():
-    # Scan index paths plus new, non-ignored work. Excluded local provider data
-    # must never be opened; staged removals are honored without rewriting refs.
-    if not (ROOT / ".git").exists():
-        for path in release_paths(ROOT):
-            yield path.relative_to(ROOT).as_posix(), path.read_bytes()
-        return
+    """Yield tracked and new, non-ignored files from the Git working tree."""
+
     output = subprocess.check_output(
         ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], cwd=ROOT
     )
@@ -86,23 +63,15 @@ def source_entries():
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--archive", type=Path)
-    args = parser.parse_args()
-    entries = archive_entries(args.archive) if args.archive else source_entries()
+    parser.parse_args()
     failures = []
     names = []
-    for name, content in entries:
+    for name, content in source_entries():
         names.append(name)
         failures.extend(inspect_entry(name, content))
-    if args.archive and not any(
-        re.fullmatch(r"(?:[^/]+/)?LICENSE", name)
-        or re.fullmatch(r"[^/]+\.dist-info/licenses/LICENSE", name)
-        for name in names
-    ):
-        failures.append("Archive lacks the project LICENSE.")
     for failure in failures:
         print(failure)
-    print(f"Scanned {len(names)} files; {len(failures)} findings. History was not scanned.")
+    print(f"Scanned {len(names)} files; {len(failures)} findings.")
     return int(bool(failures))
 
 

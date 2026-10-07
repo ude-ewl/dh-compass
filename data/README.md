@@ -31,9 +31,9 @@ This corrects two OBJECTID metadata flags without changing feature values or
 geometries. `Nutzflaeche` is read as the existing `NF` model field. See the
 repair implementation in src/dh_compass/preprocessing/filegdb.py and its tests.
 
-Provider originals remain local and excluded from the source transfer. Tests
-need no original provider workbooks; the slim SLP defaults are checked directly.
-See [DATA_LICENSES.md](../DATA_LICENSES.md).
+Provider originals should remain local unless their terms permit redistribution.
+Tests need no original provider workbooks; the bundled SLP defaults are checked
+directly. See [DATA_LICENSES.md](../DATA_LICENSES.md).
 
 For authorized production workbooks, preserve the existing schema:
 
@@ -46,7 +46,6 @@ For authorized production workbooks, preserve the existing schema:
 - Geospatial layers: configured layer and scenario columns; inspect CRS before
   selecting or reprojecting. Record conversion/filter commands with the source.
 
-Source releases include the project-authored ratio CSV and slim attributed SLP JSON.
-The original SLP workbook stays local. Other provider data belongs in separately
-licensed data bundles, not the source archive or frontend bundle.
-The new repository is created from the exported source ZIP without old history.
+The project includes the project-authored ratio CSV and attributed SLP JSON.
+Other provider data must be obtained separately and handled under its applicable
+license.

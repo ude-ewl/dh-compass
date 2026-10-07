@@ -1,7 +1,7 @@
 # Preparation and verification
 
-On 5 October 2026 the six prepared local files were compared against downloads
-from the pinned [Fordatis 341.2 record](https://fordatis.fraunhofer.de/handle/fordatis/341.2).
+The six prepared files were compared with downloads from the pinned
+[Fordatis 341.2 record](https://fordatis.fraunhofer.de/handle/fordatis/341.2).
 
 | Prepared file | Relationship to original | Feature count |
 | --- | --- | --- |
@@ -14,10 +14,9 @@ from the pinned [Fordatis 341.2 record](https://fordatis.fraunhofer.de/handle/fo
 
 All files retain EPSG:3035. For the two subsets, every local feature's geometry
 (WKB) and all published attribute columns were matched to an upstream feature.
-The historical filter commands are unavailable; no particular exclusion or
-clipping rule is asserted. Consumers can reproduce the released inputs exactly
-from this checksum-pinned bundle, or explicitly document their own new subsets.
-No attribute values or geometries were changed during this release preparation.
+No particular exclusion or clipping rule is asserted for the subsets. Consumers
+can use the checksum-pinned bundle or document their own subsets. No attribute
+values or geometries were changed during preparation.
 
 Original download SHA256 values for the subset sources:
 

@@ -2,8 +2,8 @@
 
 The application currently supports **NRW only**. Help explains usage and links to configuration. The normal form uses server-owned model defaults.
 
-The default workspace follows the original HTML viewer: a dark map, a compact
-iteration timeline and statistics bar, and a right-hand subgraph inspector.
+The default workspace provides a dark map, a compact iteration timeline and
+statistics bar, and a right-hand subgraph inspector.
 Select a study area on the map and start a calculation from the side panel.
 During optimization, gray subgraphs are pending, yellow is the active evaluation,
 green subgraphs and paths belong to the accepted grid, and red subgraphs are
@@ -14,7 +14,7 @@ runs use the same viewer to replay their recorded decisions.
 Live geometry is reported at candidate evaluation boundaries, rather than inside
 individual solver iterations. The optimizer emits complete candidate edge
 collections, accepted connecting paths, marginal costs, and accepted cumulative
-cost/demand through the existing durable run event stream. New runs include all
+cost/demand through the durable run event stream. New runs include all
 pending candidate edges in their first candidate-started event. Older runs can
 still use the smaller provisional geometry stored in their event history.
 
@@ -50,9 +50,8 @@ Vite proxies `/api` to `http://127.0.0.1:8000` by default. Set
 API, set `VITE_API_BASE_URL` to its `/api/v1` base URL.
 
 The constrained area → calculation → result workspace is the default. Project,
-scenario, comparison, and expert workflow routes redirect to the area
-workspace. Keep those legacy screens available only for a temporary rollback
-window by setting:
+scenario, comparison, and expert workflow routes redirect to the area workspace.
+Legacy routes can be enabled with:
 
 ```bash
 VITE_DH_COMPASS_FRONTEND_LEGACY_ROUTES=true npm run dev
@@ -69,7 +68,7 @@ npm run lint
 npm run typecheck
 npm test
 npm run test:e2e
-npm run test:e2e:legacy # temporary rollback-route parity suite
+npm run test:e2e:legacy
 npm run openapi:check
 ```
 

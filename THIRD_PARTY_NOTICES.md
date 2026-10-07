@@ -2,12 +2,12 @@
 
 DH-COMPASS code is MIT, copyright (c) 2026 Chair of Energy Economics,
 Universität Duisburg-Essen. Dependency and provider licenses are independent.
-This source release vendors no Python/npm package implementations or solver binaries.
+The repository vendors no Python/npm package implementations or solver binaries.
 
 ## Python
 
 Direct dependencies are used by application imports, data readers or the solver
-boundary. Plotly was unused and removed. The installed lockfile inventory and
+boundary. The installed lockfile inventory and
 wheel notice-file status are recorded in docs/licenses/dependency-inventory.json.
 Use scripts/dependency_licenses.py to regenerate local reports and full installed
 license/NOTICE texts in outputs/license-reports/.
@@ -32,11 +32,11 @@ code; native GEOS, GDAL, PROJ, BLAS, compiler runtime and SuiteSparse components
 must be reviewed under their own terms when bundling an environment. Package-level
 SPDX metadata alone is insufficient for a frozen executable or container image.
 
-The reviewed Windows cbcbox 2.935 and highsbox 1.13.1 wheels omit complete
-license-file entries. They are downloaded from upstream during installation,
-not included in this release. Do not redistribute those wheels or a bundled
-runtime until their solver/native notices and corresponding-source obligations
-are resolved. --strict-binaries on the inventory command enforces this gate.
+Windows cbcbox 2.935 and highsbox 1.13.1 wheels may omit complete license-file
+entries. They are downloaded from upstream during installation and are not
+included in the repository. Review solver/native notices and corresponding-source
+obligations before redistributing those wheels or a bundled runtime.
+`--strict-binaries` on the inventory command enforces this gate.
 CBC is a transitive Python-MIP dependency even though this application's automatic
 fallback uses HiGHS. Gurobi is proprietary, optional and separately licensed.
 
@@ -44,10 +44,10 @@ fallback uses HiGHS. Gurobi is proprietary, optional and separately licensed.
 
 The frontend uses React, MUI, Emotion, TanStack Query, MapLibre GL JS, ECharts,
 React Hook Form, React Router and Zod. Their lockfile declarations include MIT,
-BSD, Apache-2.0 and ISC components. 
-pm run build writes full runtime license
-and NOTICE texts to dist/THIRD_PARTY_LICENSES.txt and fails if required texts
-are missing. Ship that file with every compiled frontend; source releases exclude
+BSD, Apache-2.0 and ISC components.
+`npm run build` writes full runtime license and NOTICE texts to
+`dist/THIRD_PARTY_LICENSES.txt` and fails if required texts are missing. Ship
+that file with every compiled frontend; repository source excludes
 the compiled bundle and node_modules. Dev-tool licenses are inventoried separately
 by their dev lockfile flag. A conservative runtime inventory may include packages
 that were tree-shaken out of the final chunks.
