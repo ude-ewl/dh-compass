@@ -12,7 +12,6 @@ project-authored ratio CSV. It does not relicense third-party data.
 | Six heat-resource GeoPackages | Manz, Billerbeck, Fallahnejad et al., [Fraunhofer Fordatis 341.2](https://fordatis.fraunhofer.de/handle/fordatis/341.2?locale=en&mode=full), DOI 10.24406/fordatis/280.2; CC BY 4.0 | Available as a separate resource bundle with attribution, license, checksums, and preparation notes. |
 | OpenStreetMap streets/geocoding | [ODbL 1.0](https://www.openstreetmap.org/copyright) | Acquired at runtime. Retain © OpenStreetMap contributors and the ODbL link, and review database obligations when distributing derived data. |
 | Open-Meteo historical weather | [CC BY 4.0 data and API terms](https://open-meteo.com/en/terms); ERA5-Land/Copernicus/ECMWF | Acquired at runtime. Credit Open-Meteo and the underlying source. The free API is restricted to non-commercial use; commercial users need a permitted service or self-hosting. |
-| EPEX/EEX price workbooks | Provider market-data terms; no redistribution grant established | Optional variable-price mode requires authorized local workbooks. Fixed-price defaults do not require them. |
 | Map tiles and search services | Provider-specific service terms, separate from underlying data licenses | Keep required map attribution and review the policies of configured services before public deployment. |
 
 Resource file hashes are recorded in

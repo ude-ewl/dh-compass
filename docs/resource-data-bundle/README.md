@@ -10,8 +10,8 @@ Extract the ZIP into your project root. Files are placed in
 Keep the included `resource-data-bundle/` notices with any redistributed copy.
 Verify SHA256SUMS.txt or the archive's sibling `.sha256` file before use.
 
-The archive contains no NRW building GDB, BDEW SLP table, weather or market data.
-Those have separate acquisition requirements in `data/README.md`.
+The archive contains only the heat-resource layers. See `data/README.md` for
+other input requirements.
 
 Build the bundle from local source inputs with:
 
