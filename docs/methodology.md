@@ -18,6 +18,21 @@ Original workbooks and geospatial data are external local inputs, not bundled da
 
 Configured timesteps, technology options, storage and resource constraints remain unchanged. Gurobi is preferred when installed and usable; HiGHS is the installed fallback. See [architecture.md](architecture.md).
 
+## District-heating heat balance
+
+Central models include constant fractional distribution losses, configured by
+`network.heat_loss_fraction` (default 12.5%). At each timestep network input is
+`delivered demand / (1 - loss fraction)`; the difference is distribution loss.
+This also raises the supply capacity reference peak and source-side pump sizing.
+Only model-ready central demand is converted: cumulative accepted demand and
+building/decentralized profiles stay unscaled, preventing repeated application
+as the network expands. Resource limits, generator efficiencies, COP and storage
+losses remain separate. Heat-density screening and building-side infrastructure
+costs still use delivered demand; detailed spatial pipe losses/hydraulics are
+outside this approximation. Results distinguish delivered demand, network input
+and distribution losses. Setting the fraction to zero restores the previous
+loss-free behavior.
+
 ## Interpretation
 
 Annual heat is MWh/a; peak/installed power is kW; annualized cost is €/a; raw capital is €. Do not mix candidate alternatives with final-network totals or apply a second annuity to annualized costs. See [metric semantics](frontend/metric-contract.md).

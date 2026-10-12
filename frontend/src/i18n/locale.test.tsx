@@ -94,6 +94,15 @@ it("interpolates messages and translates dynamic labels without changing data", 
   expect(tr("The selected area is larger than 2,500 km².")).toBe(
     "Das gewählte Gebiet ist größer als 2,500 km².",
   );
+  expect(tr("DH distribution heat loss fraction")).toBe(
+    "Anteil der Fernwärme-Verteilverluste",
+  );
+  expect(
+    tr(
+      "Fraction of heat entering the DH network lost before delivery. Central supply requires delivered demand / (1 - fraction); decentralized demand is unchanged. Zero disables distribution losses.",
+    ),
+  ).toContain("der dezentrale Bedarf bleibt unverändert");
+  expect(tr(0.125)).toBe(0.125);
   expect(tr("inputs/default.toml")).toBe("inputs/default.toml");
   expect(tr(1234.5)).toBe(1234.5);
 });

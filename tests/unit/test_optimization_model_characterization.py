@@ -312,7 +312,11 @@ def test_lp_reuse_rejects_changed_context_and_invalid_demand(monkeypatch):
 
 
 @pytest.mark.parametrize("backend", [CBC, "HiGHS"])
-def test_model_runner_reuses_models_and_keeps_modes_separate(monkeypatch, backend):
+@pytest.mark.parametrize("loss_fraction", [0.0, 0.1, 0.125, 0.15])
+@pytest.mark.parametrize("boiler_efficiency", [1.0, 0.9])
+def test_model_runner_reuses_models_and_keeps_modes_separate(
+    monkeypatch, backend, loss_fraction, boiler_efficiency
+):
     from types import SimpleNamespace
 
     from dh_compass.optimization.model_inputs import (
@@ -323,11 +327,12 @@ def test_model_runner_reuses_models_and_keeps_modes_separate(monkeypatch, backen
     from dh_compass.optimization.model_runner import ModelRunner
 
     inputs = _typed_inputs(_base_model_inputs(
-        boiler=_technology(on_off=1), fuel_price=[0.1] * 3,
+        boiler=_technology(on_off=1, efficiency=boiler_efficiency), fuel_price=[0.1] * 3,
         decentral_heat_storage_intercept=0, decentral_heat_storage_slope=0,
     ))
     context = SimpleNamespace(
         economic=inputs.economic, resources=inputs.resources, options=inputs.options,
+        network=SimpleNamespace(heat_loss_fraction=loss_fraction),
         market=ContextMarketData(inputs.market, inputs.market),
         technologies=ContextTechnologyPortfolio(inputs.technologies, inputs.technologies),
         demand=ContextDemandData(
@@ -361,9 +366,25 @@ def test_model_runner_reuses_models_and_keeps_modes_separate(monkeypatch, backen
     assert len(models) == 2
     assert changed.objective_value == pytest.approx(2 * first.objective_value)
     # Returned solutions are values; subsequent solves must not mutate them.
-    assert first.solution.supply["boiler"].capacity_kw == pytest.approx(20)
+    factor = 1 / (1 - loss_fraction)
+    assert first.solution.supply["boiler"].capacity_kw == pytest.approx(20 * factor)
+    assert first.objective_value == pytest.approx(4.5 * factor / boiler_efficiency)
+    assert first.solution.energy_flows.fuel_boiler_kwh == pytest.approx(
+        45 * factor / boiler_efficiency
+    )
     assert decentralized.solution.supply["boiler"].capacity_kw == pytest.approx(20)
-    assert decentralized.objective_value == pytest.approx(4.5)
+    assert decentralized.objective_value == pytest.approx(4.5 / boiler_efficiency)
+    fresh = ModelRunner(context, model_builder=build, reuse_models=False).run(
+        pd.Series([20, 40, 30]), use_gathered_results=True
+    )
+    assert fresh.objective_value == pytest.approx(changed.objective_value)
+    assert fresh.solution.result_df["demand_heat"].tolist() == [20, 40, 30]
+    assert fresh.solution.result_df["network_input_heat"].tolist() == pytest.approx(
+        [20 * factor, 40 * factor, 30 * factor]
+    )
+    assert fresh.solution.result_df["distribution_heat_loss"].sum() == pytest.approx(
+        90 * (factor - 1)
+    )
     if backend == "HiGHS":
         from concurrent.futures import ThreadPoolExecutor
 
@@ -381,7 +402,9 @@ def test_model_runner_reuses_models_and_keeps_modes_separate(monkeypatch, backen
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             runs = list(executor.map(run_size, [1, 2, 3, 4]))
-        assert [run.objective_value for run in runs] == pytest.approx([4.5, 9, 13.5, 18])
+        assert [run.objective_value for run in runs] == pytest.approx(
+            [value / boiler_efficiency for value in [4.5, 9, 13.5, 18]]
+        )
         assert all(model.threads == 1 for model in models)
         assert len(runner._models[False]) == 1
 

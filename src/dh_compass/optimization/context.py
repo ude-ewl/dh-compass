@@ -21,6 +21,7 @@ from dh_compass.demand.runtime import (
 )
 from dh_compass.economics.cost_curves import residual_value_factor
 from dh_compass.network.costs import build_network_cost_functions
+from dh_compass.network.losses import validate_heat_loss_fraction
 
 from .model_inputs import (
     ContextDemandData,
@@ -47,6 +48,7 @@ class NetworkInputs:
     pipeline_cost_per_m: float
     infrastructure_cost_factor: float
     residual_value_factor_pipeline: float
+    heat_loss_fraction: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -103,6 +105,7 @@ class OptimizationContext:
         message that identifies the affected mode.
         """
 
+        validate_heat_loss_fraction(self.network.heat_loss_fraction)
         central_market = self.market.central
         decentral_market = self.market.decentral
         try:
@@ -373,6 +376,7 @@ def build_optimization_context(
             decentral_heat_storage_slope=config.optimization.decentral_heat_storage_slope,
         ),
         network=NetworkInputs(
+            heat_loss_fraction=config.network.heat_loss_fraction,
             pipeline_cost_per_m=config.network.pipeline_cost_per_m,
             infrastructure_cost_factor=config.network.infrastructure_cost_factor,
             residual_value_factor_pipeline=pipeline_residual,

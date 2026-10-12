@@ -14,6 +14,7 @@ from ..economics.annuity import annuity_factor
 from ..optimization.context import OptimizationResult
 from ..optimization.orchestration import HeatGridOptimizer
 from .costs import build_cost_breakdown
+from .heat_balance import heat_balance_metrics
 from .portfolio import (
     aggregate_supply_energy,
     portfolio_energy_mwh,
@@ -107,6 +108,10 @@ def assemble_full_results(
     total_demand = connected_demand + disconnected_demand
 
     summary = {
+        "heat_loss_fraction": ctx.network.heat_loss_fraction,
+        "annual_network_input_heat_mwh": 0.0,
+        "annual_distribution_heat_loss_mwh": 0.0,
+        "network_input_peak_load_kw": 0.0,
         "total_subgraphs": len(all_ids),
         "connected_subgraphs": len(connected_ids),
         "disconnected_subgraphs": len(disconnected_ids),
@@ -143,12 +148,15 @@ def assemble_full_results(
         grid_ann_ratio = (1 - ctx.network.residual_value_factor_pipeline) * af
         cost_breakdown = build_cost_breakdown(portfolio, ctx, decentral_bool=False)
 
+        balance = heat_balance_metrics(result_df, dt, ctx.network.heat_loss_fraction)
+        summary.update(balance)
         peak_load_kw = float(result_df["demand_heat"].max())
         all_edges = []
         for subgraph_id in connected_ids:
             all_edges.extend(_extract_edges(optimizer.subgraph_dict[subgraph_id]))
 
         combined_graph = {
+            **balance,
             "connected_subgraph_ids": [int(value) for value in connected_ids],
             "annual_heat_demand_mwh": round(connected_demand, 4),
             "total_buildings": total_buildings,
@@ -240,6 +248,7 @@ def assemble_full_results(
             result_df = _require_result_frame(stored_solution)
             central_portfolio = portfolio_from_stored_result(stored_solution)
             subgraph_entry["central_cumulative_supply"] = {
+                **heat_balance_metrics(result_df, dt, ctx.network.heat_loss_fraction),
                 "cumulative_demand_mwh": round(
                     float(result_df["demand_heat"].sum() * dt / 1000), 4
                 ),

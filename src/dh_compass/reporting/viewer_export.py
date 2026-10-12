@@ -8,8 +8,12 @@ from dh_compass.config import AppConfig, PathConfig
 from dh_compass.optimization.context import OptimizationContext
 from dh_compass.reporting.attribution import OSM_PROVENANCE, with_map_provenance
 from dh_compass.reporting.costs import build_cost_breakdown
+from dh_compass.reporting.heat_balance import heat_balance_metrics
 from dh_compass.reporting.json_export import to_native
-from dh_compass.reporting.portfolio import portfolio_from_stored_result
+from dh_compass.reporting.portfolio import (
+    portfolio_from_stored_result,
+    result_frame_from_stored_result,
+)
 from dh_compass.reporting.result_schema import _get_val
 
 
@@ -139,6 +143,7 @@ def export_viewer_data(
         "investment_period_years": ctx.economic.investment_duration,
         "interest_rate": ctx.economic.interest_rate,
         "infrastructure_cost_factor": ctx.network.infrastructure_cost_factor,
+        "heat_loss_fraction": ctx.network.heat_loss_fraction,
     }
 
     connected_ids = list(optimizer.connected_subgraphs)
@@ -155,6 +160,10 @@ def export_viewer_data(
     total_demand = connected_demand + disconnected_demand
 
     summary = {
+        "heat_loss_fraction": ctx.network.heat_loss_fraction,
+        "annual_network_input_heat_mwh": 0.0,
+        "annual_distribution_heat_loss_mwh": 0.0,
+        "network_input_peak_load_kw": 0.0,
         "total_subgraphs": len(all_ids),
         "connected_subgraphs": len(connected_ids),
         "disconnected_subgraphs": len(disconnected_ids),
@@ -166,6 +175,15 @@ def export_viewer_data(
         else 0,
     }
 
+    if connected_ids:
+        final_frame = result_frame_from_stored_result(
+            optimizer.opt_results_central[connected_ids[-1]]
+        )
+        if final_frame is not None:
+            summary.update(heat_balance_metrics(
+                final_frame, ctx.market.central.dt, ctx.network.heat_loss_fraction
+            ))
+
     iterations = []
     for step_info in optimizer.iteration_history:
         sg_id = step_info.subgraph_id
@@ -175,6 +193,11 @@ def export_viewer_data(
             cumulative_supply = portfolio_from_stored_result(
                 optimizer.opt_results_central[sg_id]
             )
+            frame = result_frame_from_stored_result(optimizer.opt_results_central[sg_id])
+            if frame is not None:
+                cumulative_supply.update(heat_balance_metrics(
+                    frame, ctx.market.central.dt, ctx.network.heat_loss_fraction
+                ))
 
         connecting_path_geojson = _path_nodes_to_geojson(
             step_info.connecting_path_nodes, street_network
@@ -267,6 +290,11 @@ def export_viewer_data(
             "clusters": clusters_list,
         }
         if portfolio:
+            frame = result_frame_from_stored_result(optimizer.opt_results_central[sg_id])
+            if frame is not None:
+                entry["central_cumulative_heat_balance"] = heat_balance_metrics(
+                    frame, ctx.market.central.dt, ctx.network.heat_loss_fraction
+                )
             entry["supply"] = portfolio.get("supply", {})
             entry["storage"] = portfolio.get("storage", {})
             entry["total_heat_production_mwh"] = portfolio.get(

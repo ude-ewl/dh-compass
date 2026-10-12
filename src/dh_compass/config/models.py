@@ -98,7 +98,7 @@ class ScenarioConfig:
 
 @dataclass(frozen=True)
 class NetworkConfig:
-    """Network screening and cost settings."""
+    """Network screening, distribution losses, and cost settings."""
 
     linear_heat_density_threshold: float
     flh: float
@@ -112,6 +112,7 @@ class NetworkConfig:
     building_connection_cost_coefficients: Mapping[str, float]
     transfer_station_cost_structure: Mapping[float, float]
     pump_cost_structure: Mapping[float, float]
+    heat_loss_fraction: float
 
 
 @dataclass(frozen=True)

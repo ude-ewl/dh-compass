@@ -15,6 +15,7 @@ def test_default_config_is_typed_and_resolves_paths(project_root):
     assert isinstance(config.paths.project_root, Path)
     assert config.paths.project_root == project_root.resolve()
     assert config.paths.output_root == project_root.resolve() / "outputs"
+    assert config.network.heat_loss_fraction == 0.125
     assert config.network.pipeline_cost_per_m == 1000.0
     assert config.optimization.highs_central_lp_method == "barrier"
     assert config.optimization.highs_decentral_lp_method == "barrier"
@@ -76,6 +77,8 @@ def test_loaded_defaults_match_legacy_snapshot(project_root):
     loaded = load_config(project_root=project_root)
     config = asdict(loaded)
     config.pop("paths")
+    # Distribution losses are a new assumption; keep the original snapshot intact.
+    config["network"].pop("heat_loss_fraction")
     config["resources"] = {
         key: value
         for key, value in config["resources"].items()

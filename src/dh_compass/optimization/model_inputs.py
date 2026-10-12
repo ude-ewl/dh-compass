@@ -15,6 +15,8 @@ from typing import Callable, Mapping, Protocol, Sequence
 
 import pandas as pd
 
+from ..network.losses import network_input_heat
+
 NumericSeries = Sequence[float] | pd.Series
 TimestampSeries = Sequence[object] | pd.Series
 TechnologyValue = float | int | bool
@@ -55,7 +57,11 @@ class MarketTimeSeries:
 
 @dataclass(frozen=True)
 class DemandTimeSeries:
-    """Demand, renewable profiles, and heat-pump performance profiles."""
+    """Model-ready demand, renewable profiles, and heat-pump performance.
+
+    Central ``demand_heat`` is network-input heat including distribution losses;
+    decentralized ``demand_heat`` remains delivered building demand.
+    """
 
     demand_electric: NumericSeries
     demand_heat: NumericSeries
@@ -180,6 +186,12 @@ class ContextTechnologyPortfolio:
         return self.decentral if decentral else self.central
 
 
+class NetworkLossSettings(Protocol):
+    """Distribution-loss assumption supplied by the optimization context."""
+
+    heat_loss_fraction: float
+
+
 class OptimizationContextLike(Protocol):
     """Grouped context contract consumed by the model-input adapter."""
 
@@ -189,6 +201,7 @@ class OptimizationContextLike(Protocol):
     technologies: ContextTechnologyPortfolio
     resources: ResourceLimits
     options: ModelOptions
+    network: NetworkLossSettings
 
 
 @dataclass(frozen=True)
@@ -393,13 +406,19 @@ def build_model_inputs(
     """Adapt an optimization context to one model run.
 
     Central and decentralized callers use this same adapter. The context selects
-    a complete market, demand, and technology group together.
+    a complete market, demand, and technology group together. ``demand_heat``
+    is always delivered demand; only this adapter converts central demand to
+    network-input heat, without changing candidate profiles or cumulative state.
     """
 
+    model_heat_demand = (
+        demand_heat if decentral
+        else network_input_heat(demand_heat, context.network.heat_loss_fraction)
+    )
     return ModelInputs(
         economic=context.economic,
         market=context.market.for_model(decentral),
-        demand=context.demand.for_model(demand_heat, decentral=decentral),
+        demand=context.demand.for_model(model_heat_demand, decentral=decentral),
         technologies=context.technologies.for_model(decentral),
         resources=context.resources,
         options=ModelOptions(

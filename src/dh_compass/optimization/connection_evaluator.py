@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import networkx as nx
 import pandas as pd
 
+from ..network.losses import network_input_heat
 from ..network.routing import find_shortest_path_between_subgraphs
 from ..observability.performance import PerformanceTracker
 from .context import OptimizationContext
@@ -180,7 +181,8 @@ class ConnectionEvaluator:
         """
 
         subgraph_grid_cost = self.get_subgraph_grid_cost(subgraph_id)
-        grid_peak_load_kw = float(demand_heat.max())
+        network_demand = network_input_heat(demand_heat, self.context.network.heat_loss_fraction)
+        grid_peak_load_kw = float(max(network_demand))
         pump_cost = float(
             self.context.runtime_services.pump_cost_func(grid_peak_load_kw)
         )

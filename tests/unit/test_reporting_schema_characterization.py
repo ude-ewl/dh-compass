@@ -113,6 +113,7 @@ def _fake_optimizer():
             residual_value_factor_pipeline=0.1,
             pipeline_cost_per_m=10.0,
             infrastructure_cost_factor=1.0,
+            heat_loss_fraction=0.0,
         ),
     )
     return SimpleNamespace(
@@ -148,7 +149,48 @@ def test_full_results_json_schema_and_stable_values(assert_json_characterization
     fixture_path = Path(__file__).resolve().parents[1] / "fixtures" / "full_results.json"
     expected = json.loads(fixture_path.read_text(encoding="utf-8"))
 
+    # New additive metrics must not alter the legacy delivered-demand fields.
+    balance = {
+        "heat_loss_fraction": 0.0,
+        "annual_network_input_heat_mwh": 0.0,
+        "annual_distribution_heat_loss_mwh": 0.0,
+        "network_input_peak_load_kw": 0.0,
+    }
+    expected["summary"].update(balance)
+    expected["combined_graph"].update(balance)
+    expected["subgraphs"][0]["central_cumulative_supply"].update(balance)
     assert_json_characterization(actual, expected)
+
+
+def test_full_and_viewer_results_separate_losses_from_delivered_heat():
+    optimizer = _fake_optimizer()
+    optimizer.ctx.network.heat_loss_fraction = 0.125
+    optimizer.ctx.market.central.dt = 0.5
+    frame = optimizer.opt_results_central[1][1].result_df
+    frame.loc[0, "demand_heat"] = 25000.0
+    frame["network_input_heat"] = frame["demand_heat"] / 0.875
+    # Generation can include other losses and must not define distribution loss.
+    frame.loc[0, "hb_h"] = 50000.0
+    full = assemble_full_results(optimizer, [_result()])
+    assert full["summary"]["connected_heat_demand_mwh"] == 12.5
+    assert full["combined_graph"]["annual_heat_demand_mwh"] == 12.5
+    assert full["combined_graph"]["peak_load_kw"] == 25000.0
+    for section in (full["summary"], full["combined_graph"],
+                    full["subgraphs"][0]["central_cumulative_supply"]):
+        assert section["heat_loss_fraction"] == 0.125
+        assert section["annual_network_input_heat_mwh"] == 14.2857
+        assert section["annual_distribution_heat_loss_mwh"] == 1.7857
+        assert section["network_input_peak_load_kw"] == 28571.4286
+    config = SimpleNamespace(
+        scenario=SimpleNamespace(case="test"),
+        network=SimpleNamespace(flh=3000, linear_heat_density_threshold=0.1),
+    )
+    graph = optimizer.subgraph_dict[1]
+    viewer = export_viewer_data(optimizer, [_result()], graph, graph, config)
+    assert viewer["config"]["heat_loss_fraction"] == 0.125
+    assert viewer["summary"] == full["summary"]
+    balance = viewer["subgraphs"]["1"]["central_cumulative_heat_balance"]
+    assert balance["annual_distribution_heat_loss_mwh"] == 1.7857
 
 
 def test_full_results_rejects_solution_without_time_series():

@@ -88,6 +88,7 @@ _LABELS = {
     "resources": "Resource datasets and scenarios",
     "paths": "Paths and output",
     "linear_heat_density_threshold": "Linear heat density threshold",
+    "heat_loss_fraction": "DH distribution heat loss fraction",
     "geodata_frame": "Geodata selection",
     "enabled_resources": "Enabled resources",
     "max_workers": "Maximum workers",
@@ -166,6 +167,7 @@ _MANAGED_PATH_FIELDS = {
 _UNITS = {
     "network.linear_heat_density_threshold": "MWh/(m·a)",
     "network.flh": "h/a",
+    "network.heat_loss_fraction": "fraction",
     "network.pipeline_cost_per_m": "€/m",
     "network.pipeline_residual_interest_rate": "1/a",
     "demand.carnot_eta": "fraction",
@@ -328,7 +330,10 @@ def _data_type(value: Any) -> str:
 def _field_constraints(path: str, value: Any) -> dict[str, Any]:
     constraints: dict[str, Any] = {}
     leaf = path.rsplit(".", 1)[-1]
-    if path == "network.linear_heat_density_threshold":
+    if path == "network.heat_loss_fraction":
+        constraints["minimum"] = 0
+        constraints["exclusive_maximum"] = 1
+    elif path == "network.linear_heat_density_threshold":
         constraints["minimum"] = 0
     elif path in {
         "network.flh",
@@ -922,6 +927,11 @@ class ConfigurationAdapter:
                 "usually produce fewer, denser candidate areas."
             ),
             "network.flh": "Full-load hours used to derive building peak heat load.",
+            "network.heat_loss_fraction": (
+                "Fraction of heat entering the DH network lost before delivery. "
+                "Central supply requires delivered demand / (1 - fraction); "
+                "decentralized demand is unchanged. Zero disables distribution losses."
+            ),
             "demand.prices_fixed": "Use fixed electricity prices instead of loading market prices.",
             "optimization.max_workers": "Maximum parallel candidate evaluations for one run.",
             "optimization.n_clusters": "Number of representative building clusters.",

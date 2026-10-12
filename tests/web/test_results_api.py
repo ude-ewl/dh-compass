@@ -229,6 +229,46 @@ def test_read_only_result_endpoints_adapt_legacy_output(tmp_path: Path) -> None:
         assert download.json()["summary"]["connected_subgraphs"] == 1
 
 
+@pytest.mark.parametrize("use_full", [True, False])
+def test_heat_loss_metrics_survive_result_api_adaptation(tmp_path: Path, use_full: bool) -> None:
+    output_root = tmp_path / "outputs"
+    _write_run(output_root)
+    run = output_root / "demo" / "20240101T000000Z"
+    balance = {
+        "heat_loss_fraction": 0.125,
+        "annual_network_input_heat_mwh": 14.2857,
+        "annual_distribution_heat_loss_mwh": 1.7857,
+        "network_input_peak_load_kw": 4.5714,
+    }
+    full_path = run / "full_results.json"
+    full = json.loads(full_path.read_text(encoding="utf-8"))
+    full["summary"].update(balance)
+    full["combined_graph"].update(balance)
+    full_path.write_text(json.dumps(full), encoding="utf-8")
+    viewer_path = run / "viewer_data.json"
+    viewer = json.loads(viewer_path.read_text(encoding="utf-8"))
+    viewer["summary"].update(balance)
+    viewer["summary"]["connected_heat_demand_mwh"] = 12.5
+    viewer["iterations"][0]["cumulative_supply"] = {
+        **balance, "supply": full["combined_graph"]["supply"], "storage": {},
+    }
+    viewer_path.write_text(json.dumps(viewer), encoding="utf-8")
+    if not use_full:
+        full_path.unlink()
+    with _client(tmp_path) as client:
+        run_id = quote("demo/20240101T000000Z", safe="")
+        for section in ("summary", "supply"):
+            response = client.get(f"/api/v1/runs/{run_id}/results/{section}")
+            assert response.status_code == 200
+            assert response.json()["available"] is True
+            data = response.json()["data"]
+            for key, value in balance.items():
+                assert data[key] == value
+        assert client.get(f"/api/v1/runs/{run_id}/results/summary").json()["data"][
+            "connected_heat_demand_mwh"
+        ] == 12.5
+
+
 def test_adapter_uses_report_fixtures_and_omits_rejected_connection_paths(
     tmp_path: Path,
 ) -> None:

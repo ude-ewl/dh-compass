@@ -17,6 +17,7 @@ def _network_context():
     return SimpleNamespace(
         network=SimpleNamespace(
             infrastructure_cost_factor=1.0,
+            heat_loss_fraction=0.0,
             pipeline_cost_per_m=10.0,
             residual_value_factor_pipeline=0.0,
         ),

@@ -1,5 +1,8 @@
 /** German presentation messages; preserve units, identifiers and raw artifacts. */
 export const german: Record<string, string> = {
+  "DH distribution heat loss fraction": "Anteil der Fernwärme-Verteilverluste",
+  "Fraction of heat entering the DH network lost before delivery. Central supply requires delivered demand / (1 - fraction); decentralized demand is unchanged. Zero disables distribution losses.":
+    "Anteil der in das Fernwärmenetz eingespeisten Wärme, der vor der Lieferung verloren geht. Die zentrale Versorgung benötigt den gelieferten Wärmebedarf / (1 - Anteil); der dezentrale Bedarf bleibt unverändert. Null deaktiviert Verteilverluste.",
   "© OpenStreetMap contributors": "© OpenStreetMap-Mitwirkende",
   "About DH-COMPASS": "Über DH-COMPASS",
   "How to use the browser app": "So verwenden Sie die Browseranwendung",

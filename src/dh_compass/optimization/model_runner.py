@@ -138,7 +138,11 @@ class ModelRunner:
         performance_name: str | None = None,
         record_performance: bool = True,
     ) -> ModelRun:
-        """Run one central or decentralized model.
+        """Run one central or decentralized model from delivered heat demand.
+
+        The model-input adapter applies DH losses for central supply. Gathered
+        results retain delivered ``demand_heat`` and separately expose network
+        input and distribution loss, all as timestep powers in kW.
 
         ``use_gathered_results`` is enabled for central models because the
         reporting boundary needs their time-series dataframe.  Cluster
@@ -161,7 +165,7 @@ class ModelRunner:
             if self.reuse_models:
                 with self._models_lock:
                     if self._models[decentral]:
-                        peak = max(float(demand_heat.max()), 1e-9)
+                        peak = max(float(max(model_inputs.demand.demand_heat)), 1e-9)
                         cached = self._models[decentral]
                         # Nearby building sizes tend to retain a useful basis.
                         index = min(
@@ -211,8 +215,16 @@ class ModelRunner:
                     model_inputs.market.price_sell_chp,
                     model_inputs.market.dt,
                 )
+                result_df, results_dim = gathered_results
+                # Existing demand_heat remains delivered heat for reports and €/MWh.
+                result_df = result_df.copy()
+                result_df["demand_heat"] = list(demand_heat)
+                result_df["network_input_heat"] = list(model_inputs.demand.demand_heat)
+                result_df["distribution_heat_loss"] = (
+                    result_df["network_input_heat"] - result_df["demand_heat"]
+                )
                 solution = _solution_from_gathered(
-                    gathered_results,
+                    (result_df, results_dim),
                     model_inputs.market.dt,
                     objective_value,
                 )

@@ -11,6 +11,8 @@
 "enabled_resources" = ["industrial_excess_heat", "biomass", "waste_to_energy", "geothermal", "river_heat_pump", "wwtp_heat_pump"]
 
 [network]
+# Fraction of heat entering the DH network lost before delivery; 0 disables losses.
+"heat_loss_fraction" = 0.125
 "linear_heat_density_threshold" = 2
 "flh" = 3000
 "pipeline_cost_per_m" = 1000

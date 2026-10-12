@@ -291,6 +291,12 @@ class LegacyResultAdapter:
             else {},
             "total_heat_production_mwh": portfolio.get("total_heat_production_mwh"),
         }
+        for key in (
+            "heat_loss_fraction", "annual_network_input_heat_mwh",
+            "annual_distribution_heat_loss_mwh", "network_input_peak_load_kw",
+        ):
+            if key in portfolio:
+                data[key] = portfolio[key]
         # Potential limits are stored only in viewer_data.json.  Preserve this
         # legacy information even when the richer full-results portfolio wins.
         if viewer.available and isinstance(viewer.value, Mapping):

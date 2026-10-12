@@ -47,6 +47,33 @@ Generated run artifacts are written below
 to `run_pipeline`. No configuration or data files are read at package import
 time.
 
+## District-heating distribution losses
+
+`network.heat_loss_fraction` defaults to `0.125` (12.5% of heat entering the
+network). It must be finite and in `[0, 1)`. For example:
+
+```toml
+[network]
+heat_loss_fraction = 0.10
+```
+
+Central supply and source-side pump sizing use `delivered_heat / (1 - fraction)`
+at every timestep. Set `0.0` to reproduce loss-free calculations. Building demand,
+heat-density screening, building connections/transfer stations and decentralized
+benchmarks are unchanged. Generator efficiency, COP and storage losses remain
+separate. This is a constant-fraction planning approximation, not a spatial
+pipe-loss or hydraulic model.
+
+Exported `demand_heat`, annual demand and demand peaks remain delivered heat.
+Central result frames add `network_input_heat` and `distribution_heat_loss` in
+kW. Final summaries and combined-network results add `heat_loss_fraction`,
+`annual_network_input_heat_mwh`, `annual_distribution_heat_loss_mwh` and
+`network_input_peak_load_kw`. Cumulative supply metrics apply to the accepted
+network at that step, not just the newly connected candidate. Annual loss
+metrics integrate the profile with `dt`; they are not inferred from technology
+production, which may also cover storage losses or dumped heat. Heat-cost
+comparisons retain delivered heat as their denominator.
+
 ## Browser settings and coverage
 
 The released browser submits only an NRW bbox and uses server defaults. Edit scenario TOML for CLI runs or server defaults for new browser runs to change model assumptions, and validate/restart the deployment as appropriate. Completed results retain their immutable configuration. Language is a browser preference, not a model setting. Beyond NRW, regional inputs and loading/coverage checks must be adapted.

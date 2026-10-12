@@ -403,6 +403,7 @@ def _validate_document(document: Mapping[str, Any]) -> None:
         network,
         {
             "linear_heat_density_threshold",
+            "heat_loss_fraction",
             "flh",
             "pipeline_cost_per_m",
             "infrastructure_cost_factor",
@@ -421,6 +422,7 @@ def _validate_document(document: Mapping[str, Any]) -> None:
         network,
         [
             "linear_heat_density_threshold",
+            "heat_loss_fraction",
             "flh",
             "pipeline_cost_per_m",
             "infrastructure_cost_factor",
@@ -439,6 +441,9 @@ def _validate_document(document: Mapping[str, Any]) -> None:
         network["linear_heat_density_threshold"],
         "network.linear_heat_density_threshold",
     )
+    loss_fraction = _number(network["heat_loss_fraction"], "network.heat_loss_fraction")
+    if not 0 <= loss_fraction < 1:
+        raise ConfigurationError("network.heat_loss_fraction must be in [0, 1)")
     _positive(network["flh"], "network.flh")
     for name in (
         "pipeline_cost_per_m",
@@ -704,6 +709,7 @@ def _make_config(document: Mapping[str, Any], paths: PathConfig) -> AppConfig:
         enabled_resources=tuple(str(v) for v in scenario["enabled_resources"]),
     )
     network_config = NetworkConfig(
+        heat_loss_fraction=float(network["heat_loss_fraction"]),
         linear_heat_density_threshold=float(network["linear_heat_density_threshold"]),
         flh=float(network["flh"]),
         pipeline_cost_per_m=float(network["pipeline_cost_per_m"]),

@@ -162,6 +162,11 @@ def test_expert_schema_covers_fields_and_exposes_revision_comparisons(tmp_path: 
         assert "network.linear_heat_density_threshold" in fields
         assert "economics.cost_structures.chp.300" in fields
         assert "technologies.boiler_central.0.efficiency" in fields
+        loss_field = fields["network.heat_loss_fraction"]
+        assert loss_field["value"] == 0.125
+        assert loss_field["unit"] == "fraction"
+        assert loss_field["constraints"] == {"minimum": 0, "exclusive_maximum": 1}
+        assert loss_field["preprocessing_impact"] is False
         assert fields["network.linear_heat_density_threshold"]["expert_only"] is False
         assert fields["economics.cost_structures.chp.300"]["expert_only"] is True
         assert fields["economics.cost_structures.chp.300"]["group"] == "cost_curves"
