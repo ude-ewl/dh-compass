@@ -142,6 +142,7 @@ def write_outputs(
     *,
     output_dir: str | Path | None = None,
     weather_metadata: Mapping[str, object] | None = None,
+    biomass_allocation: Mapping[str, object] | None = None,
 ) -> tuple[Path, Mapping[str, object], Mapping[str, object]]:
     """Write JSON, charts, viewer data, and network layers for a run."""
 
@@ -161,7 +162,11 @@ def write_outputs(
         optimizer, optimization_results, flh=config.network.flh
     )
     full_results["map_source_provenance"] = dict(OSM_PROVENANCE)
-    save_full_results_json(dict(OSM_PROVENANCE), output_path / "data_provenance.json")
+    provenance = dict(OSM_PROVENANCE)
+    if biomass_allocation is not None:
+        full_results["resource_allocations"] = {"biomass": dict(biomass_allocation)}
+        provenance["biomass"] = dict(biomass_allocation)
+    save_full_results_json(provenance, output_path / "data_provenance.json")
     if weather_metadata:
         full_results["weather"] = dict(weather_metadata)
         save_full_results_json(dict(weather_metadata), output_path / "weather_provenance.json")
@@ -175,6 +180,8 @@ def write_outputs(
         lhd_graph=prepared.lhd_graph,
         config=config,
     )
+    if biomass_allocation is not None:
+        viewer_data["resource_allocations"] = {"biomass": dict(biomass_allocation)}
     save_viewer_data(viewer_data, output_path / "viewer_data.json", template_path=config.paths.viewer_template)
 
     optimizer.perf.add_optimization_metric(
@@ -330,6 +337,10 @@ def run_pipeline(
             prepared,
             config,
             output_dir=output_dir,
+            **(
+                {"biomass_allocation": resource_availability.biomass_allocation}
+                if resource_availability.biomass_allocation is not None else {}
+            ),
             **(
                 {"weather_metadata": loaded["time_series"].data.attrs["weather"]}
                 if isinstance(loaded["time_series"], TimeSeriesData)

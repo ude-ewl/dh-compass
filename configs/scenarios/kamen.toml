@@ -2,3 +2,7 @@
 case = "kamen"
 # Replace with the study area's WGS84 bounding box when running this scenario.
 bbox = [7.60, 51.55, 7.75, 51.65]
+
+[resources]
+# Reconfirm this selection when changing the study-area rectangle.
+biomass_municipality_ags = ["05978020"]

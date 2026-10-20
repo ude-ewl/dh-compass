@@ -230,6 +230,10 @@ class ResourceConfig:
     hydrothermal_scenario: str
     rivers_lakes_path: Path
     wwtp_path: Path
+    biomass_allocation_method: str = "municipality_population"
+    biomass_population_path: Path | None = None
+    biomass_municipality_ags: tuple[str, ...] = ()
+    biomass_budget_fraction: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -277,6 +281,7 @@ class ResourceAvailability:
     river_hp_capacity_limit_kw: float = 0.0
     wwtp_hp_available: bool = False
     wwtp_hp_capacity_limit_kw: float = 0.0
+    biomass_allocation: Mapping[str, object] | None = None
 
 
 @dataclass(frozen=True)

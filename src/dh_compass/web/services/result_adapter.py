@@ -304,6 +304,14 @@ class LegacyResultAdapter:
             if isinstance(limits, Mapping):
                 data["resources"] = _resource_utilization(limits, supply_mapping)
                 source_artifacts.append("viewer_data.json")
+        # New runs record explicit allocation assumptions; older runs remain readable.
+        for artifact_name, document in (("full_results.json", full), ("viewer_data.json", viewer)):
+            if document.available and isinstance(document.value, Mapping):
+                allocations = document.value.get("resource_allocations")
+                if isinstance(allocations, Mapping):
+                    data["resource_allocations"] = deepcopy(dict(allocations))
+                    source_artifacts.append(artifact_name)
+                    break
         return ResultEnvelope(
             available=True,
             data=data,

@@ -14,6 +14,10 @@ import time
 from collections.abc import Callable, Mapping
 from typing import Any
 
+from requests.exceptions import RequestException
+
+from dh_compass.demand.weather import WeatherError
+
 from ..persistence.database import create_metadata_engine
 from ..persistence.migrations import run_migrations
 from ..persistence.repositories import (
@@ -24,6 +28,7 @@ from ..persistence.repositories import (
     RunRepository,
     ScenarioRepository,
 )
+from ..schemas.base import ValidationIssue
 from ..services.configuration import ConfigurationAdapter
 from ..services.data_readiness import DataReadinessService, DatasetValidationError
 from ..settings import WebSettings
@@ -33,6 +38,14 @@ from .run import RunJobManager, RunJobProcessError, run_run_worker
 
 class CalculationJobProcessError(RuntimeError):
     """Raised when an accepted calculation cannot be scheduled."""
+
+
+class _ManagedCacheRefreshError(RuntimeError):
+    """Carry a download failure back to the input-readiness result."""
+
+    def __init__(self, issues: list[ValidationIssue]):
+        super().__init__("Managed input-data downloads failed.")
+        self.issues = issues
 
 
 class CalculationJobManager:
@@ -414,9 +427,20 @@ class CalculationJobManager:
         limited to explicitly registered refresh providers.
         """
         descriptors, blocking, ready = readiness.readiness(scenario)
-        if ready or not cls._refresh_missing_managed_caches(
-            readiness, scenario, blocking, refreshers
-        ):
+        if ready:
+            return descriptors, blocking, ready
+        try:
+            refreshed = cls._refresh_missing_managed_caches(
+                readiness, scenario, blocking, refreshers
+            )
+        except _ManagedCacheRefreshError as exc:
+            # Other independent downloads may have succeeded. Recheck instead
+            # of showing missing-cache errors from before their preparation.
+            descriptors, blocking, _ = readiness.readiness(scenario)
+            failed_datasets = {issue.path for issue in exc.issues}
+            remaining = [issue for issue in blocking if getattr(issue, "path", None) not in failed_datasets]
+            return descriptors, remaining + exc.issues, False
+        if not refreshed:
             return descriptors, blocking, ready
         return readiness.readiness(scenario)
 
@@ -450,8 +474,25 @@ class CalculationJobManager:
                 continue
             managed_refreshes.append((dataset_id, provider))
             scheduled.add(dataset_id)
+        failures: list[ValidationIssue] = []
         for dataset_id, provider in managed_refreshes:
-            readiness.refresh(scenario, dataset_id, provider=provider)
+            try:
+                readiness.refresh(scenario, dataset_id, provider=provider)
+            except (RequestException, WeatherError) as exc:
+                street_network = dataset_id == "street_network"
+                failures.append(ValidationIssue(
+                    severity="error", code="DATASET_REFRESH_FAILED", path=dataset_id,
+                    message=("The OpenStreetMap street-network download failed." if street_network
+                             else "A managed input-data download failed."),
+                    remediation=(
+                        "Check the server's internet/proxy connection to the Overpass service, then start a new calculation with the same area."
+                        if street_network else
+                        "Check the server's internet/proxy connection to the data provider, then start a new calculation with the same area."
+                    ),
+                    details={"exception_type": type(exc).__name__},
+                ))
+        if failures:
+            raise _ManagedCacheRefreshError(failures)
         return bool(managed_refreshes)
 
     @staticmethod

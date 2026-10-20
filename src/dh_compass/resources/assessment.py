@@ -6,6 +6,8 @@ from pathlib import Path
 
 from dh_compass.config import ResourceAvailability
 
+from .biomass import assess_configured_biomass
+
 
 def _read(path: Path, *, crs: int | None = None):
     import geopandas as gpd
@@ -17,11 +19,9 @@ def _read(path: Path, *, crs: int | None = None):
 def assess_heat_resources(config, bbox_wgs84) -> ResourceAvailability:
     """Read configured potential layers and calculate limits inside ``bbox``."""
 
-    import geopandas as gpd
-
     resource_config = config.resources
     enabled = set(config.scenario.enabled_resources)
-    values: dict[str, float | bool] = {}
+    values: dict[str, object] = {}
 
     if "industrial_excess_heat" in enabled and resource_config.industrial_heat_path.exists():
         frame = _read(resource_config.industrial_heat_path, crs=4326)
@@ -32,29 +32,11 @@ def assess_heat_resources(config, bbox_wgs84) -> ResourceAvailability:
             if len(selected) else 0.0
         )
 
-    if "biomass" in enabled and resource_config.biomass_path.exists():
-        frame = _read(resource_config.biomass_path, crs=25832)
-        bbox = gpd.GeoDataFrame(geometry=[bbox_wgs84], crs=4326).to_crs(25832)
-        frame["orig_area"] = frame.geometry.area
-        intersection = gpd.overlay(frame, bbox, how="intersection")
-        if len(intersection):
-            intersection["intersect_area"] = intersection.geometry.area
-            if "NUTS_2" in frame.columns and "NUTS_2" in intersection.columns:
-                original_areas = frame.set_index("NUTS_2")["orig_area"]
-                intersection["area_frac"] = intersection.apply(
-                    lambda row: row["intersect_area"]
-                    / original_areas.get(row["NUTS_2"], row["intersect_area"]),
-                    axis=1,
-                )
-            else:
-                intersection["area_frac"] = 1.0
-            potential = float(
-                (intersection[resource_config.biomass_scenario] * intersection["area_frac"]).sum()
-            )
-        else:
-            potential = 0.0
-        values["biomass_available"] = potential > 0
-        values["biomass_energy_limit_mwh"] = potential * 1_000_000
+    if "biomass" in enabled:
+        biomass = assess_configured_biomass(resource_config, bbox_wgs84)
+        values["biomass_available"] = biomass.available
+        values["biomass_energy_limit_mwh"] = biomass.limit_mwh
+        values["biomass_allocation"] = biomass.metadata
 
     if "waste_to_energy" in enabled and resource_config.waste_to_energy_path.exists():
         frame = _read(resource_config.waste_to_energy_path, crs=4326)

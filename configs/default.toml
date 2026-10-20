@@ -368,6 +368,14 @@
 "industrial_heat_scenario" = "EH_95_GWh"
 "biomass_path" = "biomass_nuts2(1).gpkg"
 "biomass_scenario" = "Bio_TWh"
+# Bio_TWh is fuel energy; the source already reserves 50% for district heating.
+"biomass_allocation_method" = "municipality_population"
+"biomass_population_path" = "data/external/vg250-ew_ebenen_1231/DE_VG250.gpkg"
+# Empty: automatically use the municipality with the largest study-area overlap.
+# Explicit AGS overrides must retain leading zeros.
+"biomass_municipality_ags" = []
+# Independent studies do not reserve fuel. Concurrent projects must coordinate shares.
+"biomass_budget_fraction" = 1.0
 "waste_to_energy_path" = "wte.gpkg"
 "waste_to_energy_scenario" = "EH100PJ"
 "hydrothermal_path" = "hydrothermal_85_nrw.gpkg"

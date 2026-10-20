@@ -644,10 +644,31 @@ def _validate_document(document: Mapping[str, Any]) -> None:
         "rivers_lakes_path",
         "wwtp_path",
     }
-    _check_keys(resources, resource_keys, "resources")
-    _require_keys(resources, sorted(resource_keys), "resources")
-    for name, value in resources.items():
-        _non_empty_string(value, f"resources.{name}")
+    biomass_keys = {
+        "biomass_allocation_method", "biomass_population_path",
+        "biomass_municipality_ags", "biomass_budget_fraction",
+    }
+    _check_keys(resources, resource_keys | biomass_keys, "resources")
+    _require_keys(resources, sorted(resource_keys | biomass_keys), "resources")
+    for name in resource_keys | {"biomass_population_path"}:
+        _non_empty_string(resources[name], f"resources.{name}")
+    if not isinstance(resources["biomass_allocation_method"], str) or resources["biomass_allocation_method"] not in {"area", "municipality_population"}:
+        raise ConfigurationError(
+            "resources.biomass_allocation_method must be one of: area, municipality_population"
+        )
+    fraction = _number(resources["biomass_budget_fraction"], "resources.biomass_budget_fraction")
+    if not 0 <= fraction <= 1:
+        raise ConfigurationError("resources.biomass_budget_fraction must be in [0, 1]")
+    ags_values = resources["biomass_municipality_ags"]
+    if isinstance(ags_values, (str, bytes)) or not isinstance(ags_values, Sequence):
+        raise ConfigurationError("resources.biomass_municipality_ags must be a list of AGS strings")
+    for ags in ags_values:
+        if not isinstance(ags, str) or len(ags) != 8 or not ags.isascii() or not ags.isdigit():
+            raise ConfigurationError(
+                "resources.biomass_municipality_ags must contain eight-digit AGS strings"
+            )
+    if len(set(ags_values)) != len(ags_values):
+        raise ConfigurationError("resources.biomass_municipality_ags must not contain duplicates")
 
     output = _check_mapping(document, "output")
     _check_keys(output, {"gif_fps"}, "output")
@@ -801,6 +822,12 @@ def _make_config(document: Mapping[str, Any], paths: PathConfig) -> AppConfig:
         industrial_heat_scenario=str(resources["industrial_heat_scenario"]),
         biomass_path=_path_for_project_root(resources["biomass_path"], paths, "biomass_path"),
         biomass_scenario=str(resources["biomass_scenario"]),
+        biomass_allocation_method=str(resources["biomass_allocation_method"]),
+        biomass_population_path=_path_for_project_root(
+            resources["biomass_population_path"], paths, "biomass_population_path"
+        ),
+        biomass_municipality_ags=tuple(resources["biomass_municipality_ags"]),
+        biomass_budget_fraction=float(resources["biomass_budget_fraction"]),
         waste_to_energy_path=_path_for_project_root(
             resources["waste_to_energy_path"], paths, "waste_to_energy_path"
         ),

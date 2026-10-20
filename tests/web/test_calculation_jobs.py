@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from dh_compass.web.jobs.calculation import CalculationJobManager
 from dh_compass.web.schemas.base import ValidationIssue
 
@@ -112,4 +114,75 @@ def test_missing_static_input_does_not_prevent_managed_cache_preparation() -> No
     assert [issue.path for issue in blocking] == ["slp_parameters"]
     assert [call["dataset_id"] for call in readiness.refresh_calls] == [
         "street_network", "weather",
+    ]
+
+
+def test_overpass_timeout_becomes_an_actionable_input_issue() -> None:
+    from requests.exceptions import ConnectTimeout
+
+    class TimeoutReadiness(_Readiness):
+        def readiness(self, scenario):
+            return [], [ValidationIssue(
+                severity="error", code="DATASET_MISSING", path="street_network",
+                message="Street network cache could not be found.", remediation="Refresh it.",
+            )], False
+
+        def refresh(self, scenario, dataset_id, *, provider):
+            provider()
+
+    def unavailable_overpass():
+        raise ConnectTimeout("Connection to overpass-api.de timed out. (connect timeout=180)")
+
+    _, blocking, ready = CalculationJobManager._readiness_with_managed_refresh(
+        TimeoutReadiness(), {}, {"street_network": unavailable_overpass},
+    )
+    assert not ready
+    assert len(blocking) == 1
+    assert blocking[0].code == "DATASET_REFRESH_FAILED"
+    assert blocking[0].path == "street_network"
+    assert "OpenStreetMap" in blocking[0].message
+    assert "connection" in blocking[0].remediation.lower()
+
+
+@pytest.mark.parametrize("order", [("street_network", "weather"), ("weather", "street_network")])
+@pytest.mark.parametrize("weather_fails", [False, True])
+def test_failed_street_download_does_not_skip_weather_or_report_stale_errors(order, weather_fails):
+    from requests.exceptions import ConnectTimeout
+
+    from dh_compass.demand.weather import WeatherError
+
+    attempts = []
+    available = set()
+
+    class IndependentReadiness:
+        def readiness(self, scenario):
+            issues = [ValidationIssue(
+                severity="error", code="DATASET_MISSING", path=dataset,
+                message="Missing input", remediation="Refresh it.",
+            ) for dataset in order if dataset not in available]
+            return sorted(available), issues, not issues
+
+        def refresh(self, scenario, dataset_id, *, provider):
+            attempts.append(dataset_id)
+            provider()
+            available.add(dataset_id)
+
+    def failed_street_download():
+        raise ConnectTimeout("Connection to overpass-api.de timed out.")
+
+    def download_weather():
+        if weather_fails:
+            raise WeatherError("Local weather could not be downloaded from Open-Meteo.")
+
+    descriptors, blocking, ready = CalculationJobManager._readiness_with_managed_refresh(
+        IndependentReadiness(), {}, {
+            "street_network": failed_street_download, "weather": download_weather,
+        },
+    )
+    assert attempts == list(order)
+    assert descriptors == ([] if weather_fails else ["weather"])
+    assert not ready
+    assert [(issue.path, issue.code) for issue in blocking] == [
+        (dataset, "DATASET_REFRESH_FAILED") for dataset in order
+        if dataset == "street_network" or weather_fails
     ]

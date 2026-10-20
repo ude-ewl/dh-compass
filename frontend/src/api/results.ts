@@ -149,6 +149,7 @@ export interface SupplyTechnology extends Record<string, unknown> {
 }
 
 export interface SupplyResult extends Record<string, unknown> {
+  resource_allocations?: Record<string, unknown>;
   supply?: Record<string, SupplyTechnology>;
   storage?: Record<string, Record<string, unknown>>;
   resources?: Record<

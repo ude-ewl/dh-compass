@@ -91,6 +91,7 @@ def _build_potential_limits(ctx: OptimizationContext) -> dict[str, object]:
             "unit": "MWh",
             "metric": "energy",
             "shared_techs": ["biomass_boiler", "biomass_chp"],
+            "energy_basis": "fuel",
             "boiler_efficiency": bm_boiler_eff,
             "chp_eff_electric": bm_chp.get("efficiency_electric", 1.0),
             "chp_power_to_heat_ratio": bm_chp.get("power_to_heat_ratio", 1.0),

@@ -34,6 +34,7 @@ import {
 } from "../../components/feedback/StateViews";
 
 import { PreviewMap } from "./PreviewMap";
+import { BiomassAllocationDetails, BiomassMunicipalitySelection } from "./BiomassAllocation";
 
 const resourceDatasetIds = new Set([
   "industrial_excess_heat",
@@ -178,6 +179,9 @@ function DatasetCard({
 
   const queryClient = useQueryClient();
 
+  const allocation = dataset.metadata.biomass_allocation as Record<string, unknown> | undefined;
+  const candidates = dataset.metadata.municipality_candidates ?? allocation?.municipality_candidates;
+
   const refresh = useMutation({
     mutationFn: () => refreshDataset(scenarioId, dataset.id),
 
@@ -212,7 +216,7 @@ function DatasetCard({
         </Stack>
 
         <Typography color="text.secondary" variant="body2">
-          {dataset.description}
+          {tr(dataset.description)}
         </Typography>
 
         <Typography variant="body2">
@@ -250,6 +254,11 @@ function DatasetCard({
             )}
           </Alert>
         ))}
+
+        {dataset.id === "biomass" && <BiomassAllocationDetails value={allocation} />}
+        {dataset.id === "biomass" && Array.isArray(candidates) && candidates.length > 1 && (
+          <BiomassMunicipalitySelection scenarioId={scenarioId} value={candidates} />
+        )}
 
         {refresh.isError && <ApiErrorAlert error={refresh.error} />}
 

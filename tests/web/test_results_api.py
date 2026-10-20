@@ -144,6 +144,23 @@ def test_legacy_combined_length_excludes_rejected_paths(tmp_path: Path) -> None:
         assert result["source_artifacts"] == ["full_results.json", "viewer_data.json"]
 
 
+@pytest.mark.parametrize("artifact", ["full_results.json", "viewer_data.json"])
+def test_supply_exposes_biomass_allocation_provenance(tmp_path: Path, artifact: str) -> None:
+    _write_run(tmp_path / "outputs")
+    path = tmp_path / "outputs/demo/20240101T000000Z" / artifact
+    document = json.loads(path.read_text(encoding="utf-8"))
+    allocation = {"method": "municipality_population", "fuel_budget_mwh": 14596.7075,
+                  "municipalities": [{"ags": "05958012", "population": 25424}],
+                  "potential_sha256": "potential", "population_date": "2024-12-31"}
+    document["resource_allocations"] = {"biomass": allocation}
+    path.write_text(json.dumps(document), encoding="utf-8")
+    with _client(tmp_path) as client:
+        run_id = quote("demo/20240101T000000Z", safe="")
+        response = client.get(f"/api/v1/runs/{run_id}/results/supply")
+        assert response.status_code == 200
+        assert response.json()["data"]["resource_allocations"]["biomass"] == allocation
+
+
 def _client(tmp_path: Path):
     from fastapi.testclient import TestClient
 

@@ -188,7 +188,7 @@ async def dataset_layer(request: Request, scenario_id: str, dataset_id: str):
             if candidate.exists():
                 path = candidate
                 break
-    if path is None or definition.kind not in {"geospatial", "resource"}:
+    if path is None or definition.kind not in {"geospatial", "resource", "biomass", "biomass_population"}:
         raise HTTPException(
             status_code=409,
             detail={
@@ -202,7 +202,12 @@ async def dataset_layer(request: Request, scenario_id: str, dataset_id: str):
         kwargs: dict[str, Any] = {"rows": 5000}
         if definition.layer and path.suffix.lower() not in {".geojson", ".json"}:
             kwargs["layer"] = definition.layer
-        frame = gpd.read_file(path, **kwargs)
+        if definition.kind == "biomass_population":
+            from dh_compass.resources.municipalities import load_population
+
+            frame = load_population(path).municipalities.iloc[:5000]
+        else:
+            frame = gpd.read_file(path, **kwargs)
         if frame.crs is not None:
             frame = frame.to_crs(4326)
         document = json.loads(frame.to_json(drop_id=False))

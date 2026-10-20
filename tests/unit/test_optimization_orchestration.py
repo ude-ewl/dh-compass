@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import replace
 from unittest.mock import MagicMock, patch
 
 import networkx as nx
@@ -202,9 +203,18 @@ class TestHeatGridOptimizer(unittest.TestCase):
         mock_gen.return_value = mock_model
         mock_gather.return_value = (pd.DataFrame(), {})
 
-        optimizer = _make_optimizer()
+        ctx = replace(_make_structured_ctx(), resources=ResourceLimits(biomass_energy_limit_mwh=14596.7075))
+        optimizer = _make_optimizer(ctx=ctx)
         results = optimizer.run([10, 20])
 
+        central_inputs = [call.args[0] for call in mock_gen.call_args_list
+                          if call.args[0].options.decentral_bool == 0]
+        self.assertEqual(len(central_inputs), 2)
+        self.assertTrue(all(inputs.resources.biomass_energy_limit_mwh == 14596.7075
+                            for inputs in central_inputs))
+        self.assertGreater(sum(central_inputs[1].demand.demand_heat),
+                           sum(central_inputs[0].demand.demand_heat))
+        self.assertEqual(ctx.resources.biomass_energy_limit_mwh, 14596.7075)
         self.assertEqual(len(results), 2)
         self.assertTrue(results[0].is_connected)
         self.assertEqual(results[0].subgraph_id, 10)

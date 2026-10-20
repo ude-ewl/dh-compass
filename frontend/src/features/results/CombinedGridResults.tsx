@@ -24,6 +24,7 @@ import {
 } from "./combinedGridCharts";
 import { formatEuro, formatMwh, formatNumber } from "./format";
 import { AccessibleBarChart } from "./AccessibleBarChart";
+import { BiomassAllocationDetails } from "../scenarios/BiomassAllocation";
 
 const generationColors = [
   "#4992ff",
@@ -267,6 +268,11 @@ export function CombinedGridResults({
               </>
             )}
           </ChartPanel>
+          {supplyData.resource_allocations?.biomass && (
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <BiomassAllocationDetails value={supplyData.resource_allocations.biomass} />
+            </Paper>
+          )}
           <ChartPanel title={tr("Location-dependent potential used")}>
             {resources.length === 0 ? (
               <Typography color="text.secondary">

@@ -7,6 +7,7 @@ only delegated to an explicitly injected provider.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from collections.abc import Mapping, Sequence
@@ -18,12 +19,15 @@ from typing import Any, Callable
 
 from shapely.geometry import box
 
+from dh_compass.config import ResourceConfig
 from dh_compass.demand.weather import (
     read_weather_cache_file,
     weather_cache_path,
     weather_request,
 )
 from dh_compass.preprocessing.street_network import street_network_cache_path
+from dh_compass.resources.biomass import BiomassAllocationError, assess_configured_biomass
+from dh_compass.resources.municipalities import load_population
 
 from ..persistence.repositories import DatasetStateRepository, PreviewRepository
 from ..schemas.base import ValidationIssue
@@ -53,6 +57,7 @@ class DatasetDefinition:
     refreshable: bool = False
     resource_name: str | None = None
     candidates: tuple[Path, ...] = ()
+    biomass_config: ResourceConfig | None = None
     weather_request: Mapping[str, Any] | None = None
     slp_profiles: tuple[tuple[str, str], ...] = ()
 
@@ -156,10 +161,18 @@ class DataReadinessService:
                     path=path,
                     required=resource_name in enabled,
                     format="GeoPackage",
-                    kind="resource",
+                    kind="biomass" if resource_name == "biomass" else "resource",
                     resource_name=resource_name,
+                    biomass_config=config.resources if resource_name == "biomass" else None,
                 )
             )
+        definitions.append(DatasetDefinition(
+            id="biomass_population", label="Municipal population and boundaries",
+            description="Complete NRW municipal populations and NUTS2 denominators for biomass allocation.",
+            path=config.resources.biomass_population_path,
+            required="biomass" in enabled and config.resources.biomass_allocation_method == "municipality_population",
+            format="GeoPackage", kind="biomass_population",
+        ))
         return definitions
 
     def validate(
@@ -297,6 +310,9 @@ class DataReadinessService:
         checked_at = datetime.now(timezone.utc)
         issues: list[ValidationIssue] = []
         path = definition.path
+        if definition.kind == "biomass_population" and not definition.required:
+            return self._descriptor(definition, "unavailable", None, [], checked_at,
+                                    metadata={"not_required": True})
         if path is None:
             for candidate in definition.candidates:
                 if candidate.exists():
@@ -391,7 +407,22 @@ class DataReadinessService:
                 self._inspect_weather(path, metadata, definition.weather_request)
             elif definition.kind == "cache":
                 self._inspect_cache(path, metadata)
-            elif definition.kind == "resource":
+            elif definition.kind == "biomass_population":
+                population = load_population(path)
+                metadata = dict(population.metadata)
+                metadata["fingerprint"] = metadata["sha256"]
+                extent = [float(value) for value in population.municipalities.to_crs(4326).total_bounds]
+                crs = str(population.municipalities.crs)
+            elif definition.kind == "biomass" and definition.required:
+                if definition.biomass_config is None:
+                    raise ValueError("Biomass configuration is required.")
+                result = assess_configured_biomass(definition.biomass_config, box(*area_bbox))
+                metadata = {"biomass_allocation": result.metadata,
+                            "fingerprint": hashlib.sha256(
+                                json.dumps(result.metadata, sort_keys=True).encode()
+                            ).hexdigest()}
+                crs = "EPSG:25832"
+            elif definition.kind in {"resource", "biomass"}:
                 metadata, extent, crs = self._inspect_resource(path, area_bbox)
                 if extent is not None and not self._overlaps(extent, area_bbox):
                     issues.append(
@@ -404,6 +435,16 @@ class DataReadinessService:
                             details={"dataset_extent": extent, "study_area": area_bbox},
                         )
                     )
+        except BiomassAllocationError as exc:
+            metadata["municipality_candidates"] = exc.candidates
+            issues.append(ValidationIssue(
+                severity="error" if definition.required else "warning", code=exc.code,
+                path=definition.id, message=str(exc),
+                remediation=(
+                    "Confirm the municipality selection or check the biomass population dataset."
+                ),
+                details={"municipality_candidates": exc.candidates},
+            ))
         except Exception as exc:
             issues.append(
                 ValidationIssue(
@@ -470,7 +511,7 @@ class DataReadinessService:
         if path is not None:
             try:
                 stat = path.stat()
-                descriptor_metadata["fingerprint"] = f"{stat.st_size}:{stat.st_mtime_ns}"
+                descriptor_metadata.setdefault("fingerprint", f"{stat.st_size}:{stat.st_mtime_ns}")
             except OSError:
                 descriptor_metadata["fingerprint"] = None
         return DatasetDescriptor(

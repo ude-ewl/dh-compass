@@ -308,6 +308,19 @@ describe("event handling", () => {
 });
 
 describe("failure details", () => {
+  it("explains a recorded Overpass timeout without changing the immutable details", () => {
+    const details = {
+      code: "CALCULATION_ORCHESTRATION_FAILED", exception_type: "ConnectTimeout",
+      error: "HTTPSConnectionPool(host='overpass-api.de', port=443): Connection timed out.",
+    };
+    const before = JSON.stringify(details);
+    expect(extractFailureIssues(details)).toEqual([{
+      message: "The OpenStreetMap street-network download failed.",
+      remediation: "Check the server's internet/proxy connection to the Overpass service, then start a new calculation with the same area.",
+    }]);
+    expect(JSON.stringify(details)).toBe(before);
+    expect(extractFailureIssues({ ...details, exception_type: "ValueError" })).toEqual([]);
+  });
   it("reads actionable issues and the diagnostic code", () => {
     expect(
       extractFailureIssues({

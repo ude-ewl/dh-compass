@@ -1,3 +1,7 @@
 [scenario]
 case = "bad_oeynhausen"
 bbox = [8.744431, 52.170773, 8.849831, 52.236526]
+
+[resources]
+# This rectangle overlaps neighbours; explicitly use Bad Oeynhausen's budget.
+biomass_municipality_ags = ["05770004"]

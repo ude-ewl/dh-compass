@@ -122,5 +122,9 @@ def test_pipeline_passes_weather_provenance_to_report(monkeypatch, tmp_path):
         return tmp_path, {}, {}
 
     monkeypatch.setattr(pipeline, "write_outputs", write)
-    pipeline.run_pipeline(config, inputs=inputs, resources=ResourceAvailability())
+    allocation = {"method": "municipality_population", "fuel_budget_mwh": 14596.7075}
+    pipeline.run_pipeline(config, inputs=inputs, resources=ResourceAvailability(
+        biomass_energy_limit_mwh=14596.7075, biomass_allocation=allocation,
+    ))
     assert captured["weather_metadata"] == data.attrs["weather"]
+    assert captured["biomass_allocation"] == allocation

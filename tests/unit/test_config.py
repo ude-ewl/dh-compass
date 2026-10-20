@@ -79,6 +79,9 @@ def test_loaded_defaults_match_legacy_snapshot(project_root):
     config.pop("paths")
     # Distribution losses are a new assumption; keep the original snapshot intact.
     config["network"].pop("heat_loss_fraction")
+    # Municipality allocation is an intentional new resource assumption.
+    for key in ("biomass_allocation_method", "biomass_municipality_ags", "biomass_budget_fraction"):
+        config["resources"].pop(key)
     config["resources"] = {
         key: value
         for key, value in config["resources"].items()

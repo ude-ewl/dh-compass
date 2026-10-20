@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "scope": "NRW biomass population allocation",
+  "path": "data/external/vg250-ew_ebenen_1231/DE_VG250.gpkg",
+  "size_bytes": 117809152,
+  "sha256": "2c880a1d9b8c338e71248dbac05d9b060510314041231d5c64dc8c54a9e198e8",
+  "population_date": "2024-12-31",
+  "boundary_date": "2024-12-31",
+  "crs": "EPSG:25832",
+  "source_url": "https://daten.gdz.bkg.bund.de/produkte/vg/vg250-ew_ebenen_1231/2024/vg250-ew_12-31.utm32s.gpkg.ebenen.zip",
+  "publisher": "Bundesamt für Kartographie und Geodäsie (BKG)",
+  "license": "dl-de/by-2-0",
+  "license_url": "https://www.govdata.de/dl-de/by-2-0",
+  "attribution": "© BKG (accessed 2026), dl-de/by-2-0",
+  "data_sources_url": "https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf",
+  "modifications": "The original is unmodified. Prepared data filters NRW GF=4 municipalities, joins official NUTS2 assignments and stores compact municipal/regional tables.",
+  "municipality_count": 396,
+  "region_populations": {
+    "DEA1": 5244379,
+    "DEA2": 4486282,
+    "DEA3": 2659034,
+    "DEA4": 2072861,
+    "DEA5": 3571898
+  },
+  "nuts_compatibility": "All 59 NRW NUTS1/2/3 classifications unchanged in Eurostat 2013–2016, 2016–2021 and 2021–2024 amendment workbooks; all 396 municipal representative points agree with biomass regional assignments.",
+  "nuts_compatibility_reference": "https://ec.europa.eu/eurostat/web/nuts/history",
+  "distribution": "Original and prepared files remain local/ignored, separate from code and the Fordatis six-file resource bundle. Preparation generates a companion manifest containing the actual derived checksum."
+}

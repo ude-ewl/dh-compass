@@ -94,6 +94,10 @@ _LABELS = {
     "max_workers": "Maximum workers",
     "n_clusters": "Number of clusters",
     "interest_rate": "Interest rate",
+    "biomass_allocation_method": "Biomass allocation method",
+    "biomass_population_path": "Biomass population dataset",
+    "biomass_municipality_ags": "Biomass municipality AGS",
+    "biomass_budget_fraction": "Biomass project budget fraction",
 }
 
 # The configuration document contains a few large maps.  A presentation group
@@ -179,6 +183,7 @@ _UNITS = {
     "economics.investment_duration": "a",
     "economics.bos_factor": "factor",
     "output.gif_fps": "frames/s",
+    "resources.biomass_budget_fraction": "fraction",
 }
 
 # Impact classification follows the actual pipeline boundary rather than
@@ -330,7 +335,9 @@ def _data_type(value: Any) -> str:
 def _field_constraints(path: str, value: Any) -> dict[str, Any]:
     constraints: dict[str, Any] = {}
     leaf = path.rsplit(".", 1)[-1]
-    if path == "network.heat_loss_fraction":
+    if path == "resources.biomass_budget_fraction":
+        constraints.update({"minimum": 0, "maximum": 1})
+    elif path == "network.heat_loss_fraction":
         constraints["minimum"] = 0
         constraints["exclusive_maximum"] = 1
     elif path == "network.linear_heat_density_threshold":
@@ -420,10 +427,11 @@ def _field_constraints(path: str, value: Any) -> dict[str, Any]:
         constraints["exclusive_minimum"] = 0
         if path == "technologies.pv_module.efficiency":
             constraints["maximum"] = 1
-    elif path.startswith("resources.") or path.startswith("paths."):
+    elif (path.startswith("resources.") or path.startswith("paths.")) and isinstance(value, str):
         constraints["min_length"] = 1
 
     enum_values = {
+        "resources.biomass_allocation_method": ["municipality_population", "area"],
         "scenario.geodata_frame": ["bbox"],
         "scenario.demand_aggregation": ["sum", "legacy_mean_lhd"],
         "demand.source": ["air", "ground"],
@@ -936,6 +944,10 @@ class ConfigurationAdapter:
             "optimization.max_workers": "Maximum parallel candidate evaluations for one run.",
             "optimization.n_clusters": "Number of representative building clusters.",
             "scenario.enabled_resources": "Resource types that may be assessed during a run.",
+            "resources.biomass_allocation_method": "Whole-municipality population share, or legacy selected-area weighting.",
+            "resources.biomass_population_path": "Offline VG250-EW 2024 population and municipality dataset.",
+            "resources.biomass_municipality_ags": "Eight-digit AGS strings; empty automatically selects the municipality with the largest study-area overlap.",
+            "resources.biomass_budget_fraction": "Share of the municipal fuel budget available to this project (0–1). Independent studies do not reserve fuel; concurrent projects must coordinate shares.",
         }
         if path in descriptions:
             return descriptions[path]

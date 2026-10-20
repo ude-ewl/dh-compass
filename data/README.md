@@ -16,6 +16,7 @@ not depend on the current working directory. Expected inputs include:
 | Dataset | Expected path | Source/access and notes |
 | --- | --- | --- |
 | NRW building heat demand GDB | `external/Warmebedarf_NRW.gdb` | [Official NRW download](https://www.opengeodata.nrw.de/produkte/umwelt_klima/energie/kwp/); obtain KWP-NRW-Waermebedarf_EPSG25832_Geodatabase.zip locally and retain accompanying metadata/terms. EPSG:25832, layer configured in TOML; large and not tracked. |
+| VG250-EW municipal population/boundaries | `external/vg250-ew_ebenen_1231/DE_VG250.gpkg` | BKG 31 December 2024, dl-de/by-2-0. Required for enabled population-based biomass allocation, not legacy area mode. [Offline setup and optional compact preparation](../docs/biomass-allocation.md). |
 | Heat supply potentials | `external/heat_supply_potentials/` | Six Fraunhofer Fordatis CC BY 4.0 layers; extract the separate resource ZIP into the project root. [Attribution and installation](../docs/resource-data-bundle/README.md). |
 | Reference demand factors | `reference/sh_to_wh_ratio.csv` | Bundled project-authored calendar factors under MIT: `Datum` and `sh_to_wh_ratio`. All 8,760 original timestamps and ratios are retained exactly. The ratios weight decentralized heat-pump COP; unused workbook columns were removed. |
 | SLP parameters | `reference/slp_parameters.json` | Bundled HEF03/HMF03 coefficients and weekday factors, with BDEW source and chair transcription credit. Other profiles can use a local JSON/workbook override. [Provenance and schema](../docs/slp-inputs.md). |

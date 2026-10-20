@@ -364,7 +364,25 @@ export interface FailureIssue {
 export function extractFailureIssues(
   details: Record<string, unknown> | null | undefined,
 ): FailureIssue[] {
-  if (!details || !Array.isArray(details.issues)) return [];
+  if (!details) return [];
+  // Older immutable runs stored only a raw preparation exception. Present a
+  // safe, specific explanation rather than leaking the raw request/trace.
+  if (!Array.isArray(details.issues)) {
+    if (
+      details.code === "CALCULATION_ORCHESTRATION_FAILED" &&
+      typeof details.error === "string" &&
+      details.error.includes("overpass-api.de") &&
+      ["ConnectTimeout", "ReadTimeout", "Timeout", "ConnectionError"].includes(
+        String(details.exception_type),
+      )
+    ) {
+      return [{
+        message: "The OpenStreetMap street-network download failed.",
+        remediation: "Check the server's internet/proxy connection to the Overpass service, then start a new calculation with the same area.",
+      }];
+    }
+    return [];
+  }
   return details.issues.flatMap((value) => {
     if (!value || typeof value !== "object") return [];
     const issue = value as Record<string, unknown>;
