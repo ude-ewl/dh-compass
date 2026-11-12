@@ -17,7 +17,7 @@ from typing import Mapping
 from dh_compass.config import PathConfig
 
 _DEFAULT_DATABASE_NAME = "dh-compass-web.sqlite3"
-_DEFAULT_GEOCODING_ENDPOINT = "https://nominatim.openstreetmap.org/search"
+_DEFAULT_GEOCODING_ENDPOINT = None
 
 
 def _project_root(value: str | Path | None) -> Path:
@@ -224,11 +224,7 @@ class WebSettings:
             frontend_static_path=optional_path("DH_COMPASS_WEB_FRONTEND_STATIC_PATH"),
             development_cors_origins=environment.get("DH_COMPASS_WEB_CORS_ORIGINS", ""),
             geocoding_endpoint=(
-                environment.get(
-                    "DH_COMPASS_WEB_GEOCODING_ENDPOINT",
-                    _DEFAULT_GEOCODING_ENDPOINT,
-                ).strip()
-                or None
+                environment.get("DH_COMPASS_WEB_GEOCODING_ENDPOINT", "").strip() or None
             ),
             frontend_redesign_enabled=frontend_redesign_enabled,
             artifact_retention_days=artifact_retention_days,
