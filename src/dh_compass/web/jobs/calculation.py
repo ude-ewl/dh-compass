@@ -14,10 +14,6 @@ import time
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from requests.exceptions import RequestException
-
-from dh_compass.demand.weather import WeatherError
-
 from ..persistence.database import create_metadata_engine
 from ..persistence.migrations import run_migrations
 from ..persistence.repositories import (
@@ -478,18 +474,18 @@ class CalculationJobManager:
         for dataset_id, provider in managed_refreshes:
             try:
                 readiness.refresh(scenario, dataset_id, provider=provider)
-            except (RequestException, WeatherError) as exc:
+            except Exception as exc:  # noqa: BLE001 - provider boundary includes file/parser errors
                 street_network = dataset_id == "street_network"
                 failures.append(ValidationIssue(
                     severity="error", code="DATASET_REFRESH_FAILED", path=dataset_id,
-                    message=("The OpenStreetMap street-network download failed." if street_network
-                             else "A managed input-data download failed."),
+                    message=("The local OpenStreetMap street network could not be prepared."
+                             if street_network else "A managed input-data refresh failed."),
                     remediation=(
-                        "Check the server's internet/proxy connection to the Overpass service, then start a new calculation with the same area."
+                        "Check that data/external/osm/driving_network_nrw.graphml is present and readable, and that data/cache is writable; then start a new calculation with the same area."
                         if street_network else
-                        "Check the server's internet/proxy connection to the data provider, then start a new calculation with the same area."
+                        "Check that the configured local data or provider is available, then start a new calculation with the same area."
                     ),
-                    details={"exception_type": type(exc).__name__},
+                    details={"exception_type": type(exc).__name__, "error": str(exc)},
                 ))
         if failures:
             raise _ManagedCacheRefreshError(failures)

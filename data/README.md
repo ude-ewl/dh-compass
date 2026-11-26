@@ -21,6 +21,7 @@ not depend on the current working directory. Expected inputs include:
 | Reference demand factors | `reference/sh_to_wh_ratio.csv` | Bundled project-authored calendar factors under MIT: `Datum` and `sh_to_wh_ratio`. All 8,760 original timestamps and ratios are retained exactly. The ratios weight decentralized heat-pump COP; unused workbook columns were removed. |
 | SLP parameters | `reference/slp_parameters.json` | Bundled HEF03/HMF03 coefficients and weekday factors, with BDEW source and chair transcription credit. Other profiles can use a local JSON/workbook override. [Provenance and schema](../docs/slp-inputs.md). |
 | Local historical weather | `cache/weather/<request-hash>.json` | Automatically acquired from Open-Meteo (ERA5-Land); scoped by coordinates, year, model and request version. No user account or credentials required for non-commercial use. |
+| OpenStreetMaps | `external/nordrhein-westfalen-xxxxxx.osm.pbf` | Download: https://download.geofabrik.de/europe/germany.html; Before the first run, execute `prepare_nrw_osm.py`. This creates three separate files in the `external/osm` folder. |
 
 Ordinary CLI and web calculations acquire temperature data for the centre of the
 selected WGS84 bounding box. Validated matching caches work offline. No legacy CDS/ADS downloader is retained.

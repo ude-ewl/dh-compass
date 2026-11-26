@@ -358,6 +358,8 @@ class PreparedGeospatialData:
     lhd_graph: object
     subgraph_dict: Mapping[int, object]
     subgraph_attributes_df: object
+    osm_buildings: object | None = None
+    osm_roads: object | None = None
 
 
 @dataclass(frozen=True)

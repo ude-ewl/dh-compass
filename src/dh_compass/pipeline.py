@@ -44,6 +44,8 @@ class PipelineInputs(TypedDict):
     bbox: object
     street_network: nx.Graph
     time_series: TimeSeriesData
+    osm_buildings: object
+    osm_roads: object
 
 
 def load_inputs(config: AppConfig) -> PipelineInputs:
@@ -51,8 +53,10 @@ def load_inputs(config: AppConfig) -> PipelineInputs:
 
     from dh_compass.preprocessing.buildings import load_buildings
     from dh_compass.preprocessing.street_network import download_street_network
+    from dh_compass.preprocessing.osm_local import load_local_osm_layers
 
     buildings, bbox = load_buildings(config)
+    osm_buildings, osm_roads = load_local_osm_layers(config)
     street_network = download_street_network(config)
     time_series = load_time_series(config.paths, config)
     return {
@@ -60,6 +64,8 @@ def load_inputs(config: AppConfig) -> PipelineInputs:
         "bbox": bbox,
         "street_network": street_network,
         "time_series": time_series,
+        "osm_buildings": osm_buildings,
+        "osm_roads": osm_roads,
     }
 
 
@@ -89,6 +95,8 @@ def prepare_geospatial_data(
         lhd_graph=lhd_graph,
         subgraph_dict=subgraph_dict,
         subgraph_attributes_df=attributes,
+        osm_buildings=inputs.get("osm_buildings"),
+        osm_roads=inputs.get("osm_roads"),
     )
 
 
@@ -239,6 +247,17 @@ def _write_network_geojson(
 
     for name in ("final_network.geojson", "lhd_graph.geojson"):
         path = output_path / name
+        document = json.loads(path.read_text(encoding="utf-8"))
+        path.write_text(json.dumps(with_map_provenance(document)), encoding="utf-8")
+
+    for name, frame in (
+        ("osm_buildings.geojson", prepared.osm_buildings),
+        ("osm_roads.geojson", prepared.osm_roads),
+    ):
+        if frame is None:
+            continue
+        path = output_path / name
+        frame.to_crs(4326).to_file(path, driver="GeoJSON")
         document = json.loads(path.read_text(encoding="utf-8"))
         path.write_text(json.dumps(with_map_provenance(document)), encoding="utf-8")
 

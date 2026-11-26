@@ -5,6 +5,7 @@ from __future__ import annotations
 import errno
 import hashlib
 import json
+import logging
 import multiprocessing
 import os
 import re
@@ -32,6 +33,8 @@ from ..persistence.repositories import (
     RunRepository,
 )
 from ..settings import WebSettings
+
+LOGGER = logging.getLogger(__name__)
 
 
 class RunJobProcessError(RuntimeError):
@@ -274,17 +277,18 @@ def run_run_worker(
     )
     heartbeat = _HeartbeatThread(emitter)
     started_at = datetime.now(timezone.utc)
-    safe_case = _safe_component(str(configuration_snapshot.get("scenario", {}).get("case", "run")))
+    persisted_provenance = runs.get(run_id)
+    configuration_version = persisted_provenance.get("configuration_version")
+    bbox = persisted_provenance.get("bbox")
+    data_snapshot = persisted_provenance.get("data_snapshot") or {}
+    scenario_case = str(configuration_snapshot.get("scenario", {}).get("case", "run"))
+    safe_case = _study_area_directory_name(project_root, bbox, fallback=scenario_case)
     timestamp = started_at.strftime("%Y%m%dT%H%M%SZ")
     suffix = _safe_component(run_id[:8])
     label = _safe_component(output_label) if output_label else ""
     directory_name = "-".join(part for part in (timestamp, label, suffix) if part)
     output_path = Path(settings.output_root) / safe_case / directory_name
     log_path = output_path / "run.log"
-    persisted_provenance = runs.get(run_id)
-    configuration_version = persisted_provenance.get("configuration_version")
-    bbox = persisted_provenance.get("bbox")
-    data_snapshot = persisted_provenance.get("data_snapshot") or {}
 
     try:
         output_path.mkdir(parents=True, exist_ok=True)
@@ -586,6 +590,49 @@ def _safe_component(value: str | None) -> str:
         return "run"
     cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", str(value)).strip("._")
     return (cleaned or "run")[:120]
+
+
+def _study_area_directory_name(
+    project_root: str | Path,
+    bbox: list[float] | tuple[float, ...] | None,
+    *,
+    fallback: str,
+) -> str:
+    """Use the local VG250 municipality at the study bbox centre as folder name."""
+    fallback_name = _safe_component(fallback)
+    if not bbox or len(bbox) != 4:
+        return fallback_name
+
+    boundary_path = (
+        Path(project_root).expanduser().resolve()
+        / "data"
+        / "external"
+        / "vg250-ew_ebenen_1231"
+        / "DE_VG250.gpkg"
+    )
+    if not boundary_path.is_file():
+        return fallback_name
+
+    try:
+        from shapely.geometry import Point
+
+        from dh_compass.resources.municipalities import load_population
+
+        west, south, east, north = (float(value) for value in bbox)
+        centre = Point((west + east) / 2, (south + north) / 2)
+        municipalities = load_population(boundary_path).municipalities.to_crs(4326)
+        matches = municipalities.loc[municipalities.geometry.covers(centre)]
+        if matches.empty:
+            return fallback_name
+        name = str(matches.sort_values("ags").iloc[0]["name"]).strip()
+        ascii_name = name.translate(str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss",
+                                                   "Ä": "Ae", "Ö": "Oe", "Ü": "Ue"}))
+        return _safe_component(ascii_name).lower()
+    except Exception as exc:
+        # Folder naming must not prevent a run when local boundary data is
+        # temporarily unavailable or has an unexpected schema.
+        LOGGER.warning("Could not resolve municipality name for run folder: %s", exc)
+        return fallback_name
 
 
 def _sha256(path: Path) -> str:

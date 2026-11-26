@@ -259,6 +259,16 @@ def _export_preview(
         files.append(
             ("buildings.geojson", "Building preview", "application/geo+json", building_collection)
         )
+    if allow_building_export and prepared.osm_buildings is not None:
+        files.append((
+            "osm_buildings.geojson", "OSM building footprints",
+            "application/geo+json", _geodata_features(prepared.osm_buildings),
+        ))
+    if prepared.osm_roads is not None:
+        files.append((
+            "osm_roads.geojson", "OSM roads",
+            "application/geo+json", _geodata_features(prepared.osm_roads),
+        ))
 
     summary = _preview_summary(
         prepared,
@@ -491,6 +501,15 @@ def _edge_geometry(graph: Any, left: Any, right: Any, data: Mapping[str, Any]) -
         }
     except (KeyError, TypeError, ValueError, AttributeError):
         return None
+
+
+def _geodata_features(frame: Any) -> dict[str, Any]:
+    """Serialize one local OSM GeoDataFrame as a GeoJSON feature collection."""
+    try:
+        normalized = frame.to_crs(4326) if getattr(frame, "crs", None) else frame
+        return _json_safe(json.loads(normalized.to_json(drop_id=False)))
+    except (AttributeError, TypeError, ValueError, json.JSONDecodeError):
+        return {"type": "FeatureCollection", "features": []}
 
 
 def _building_features(buildings: Any) -> dict[str, Any]:
